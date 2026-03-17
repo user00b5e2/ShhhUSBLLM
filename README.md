@@ -1,4 +1,6 @@
-# Shhh USB LLM: Terminal AI Encubierta
+# Shhh USB LLM
+Terminal AI Encubierta
+
 Este proyecto convierte cualquier unidad USB en una terminal de Inteligencia Artificial ejecutable de forma nativa ("bare-metal") en Windows, sin necesidad de instalación ni internet. Está diseñado para ocultarse como una sesión estándar del "Símbolo del sistema" (`cmd.exe`) y responder **exclusivamente con código plano o respuestas técnicas**, ideal para programadores y depuración (especialmente C++).
 
 La IA se auto-limita mediante la inyección de un "System Prompt" para comportarse como una máquina fría: cero saludos, cero explicaciones, cero interacciones humanas. Entra código, sale código.
