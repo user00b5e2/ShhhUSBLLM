@@ -187,11 +187,15 @@ Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal
 
 ### Controles dentro de la sesion
 
-| Tecla | Que hace |
-|-------|----------|
+| Tecla / Accion | Que hace |
+|----------------|----------|
 | `Enter` | Enviar pregunta |
-| `Ctrl + C` | Cerrar la IA y volver a la terminal real |
+| Seleccionar texto + clic derecho | Copiar (CMD clasico) |
+| Clic derecho | Pegar (CMD clasico) |
+| `Ctrl + Shift + C` | Copiar (Windows Terminal) |
+| `Ctrl + Shift + V` | Pegar (Windows Terminal) |
 | Flecha arriba | Recuperar ultima pregunta |
+| Cerrar la ventana (X) | Salir |
 
 ---
 
