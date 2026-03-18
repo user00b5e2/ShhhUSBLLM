@@ -1,69 +1,254 @@
 # Shhh USB LLM
-Terminal AI Encubierta
 
-Este proyecto convierte cualquier unidad USB en una terminal de Inteligencia Artificial ejecutable de forma nativa ("bare-metal") en Windows, sin necesidad de instalación ni internet. Está diseñado para ocultarse como una sesión estándar del "Símbolo del sistema" (`cmd.exe`) y responder **exclusivamente con código plano o respuestas técnicas**, ideal para programadores y depuración (especialmente C++).
+Terminal de Inteligencia Artificial portable que se ejecuta desde un USB en Windows. Se camufla como una sesion normal del Simbolo del sistema (`cmd.exe`) o PowerShell. Sin instalacion, sin internet, sin rastro.
 
-La IA se auto-limita mediante la inyección de un "System Prompt" para comportarse como una máquina fría: cero saludos, cero explicaciones, cero interacciones humanas. Entra código, sale código.
+Escribes tu pregunta en lenguaje natural, la IA responde en texto plano. Especializado en programacion (C++, Python, etc.) y razonamiento logico.
 
 ---
 
-## Instalación y Preparación del USB
+## Que contiene este repositorio
 
-Este repositorio **solo contiene el script lanzador (`win_host.bat`)**. Para que funcione, necesitas descargar el motor de ejecución y los modelos de IA (los cuales no están incluidos aquí porque pesan varios Gigabytes).
+| Archivo | Descripcion |
+|---------|-------------|
+| `win_host.bat` | Script lanzador para CMD |
+| `win_host.ps1` | Script lanzador para PowerShell |
+| `README.md` | Esta guia |
 
-Sigue estos pasos para crear tu unidad:
+Los modelos de IA y el motor de ejecucion NO estan incluidos porque pesan varios GB. Descargalos siguiendo los pasos de abajo.
 
-### Paso 1: Configurar la unidad USB
-1. Usa un pendrive rápido (USB 3.0 o superior recomendado).
-2. Formatéalo en **exFAT**. Esto es crucial porque permite almacenar archivos individuales de más de 4GB (necesario para los modelos) y es compatible nativamente tanto con Windows como con macOS/Linux.
-3. En la raíz del USB, crea una carpeta llamada `sys_tools` (o cualquier otro nombre discreto).
+---
 
-### Paso 2: Descargar el motor (`llama.cpp`)
-1. [Descargar Directo: Archivo ZIP de llama.cpp (Versión Vulkan HW-Acc)](https://github.com/ggml-org/llama.cpp/releases/download/b8390/llama-b8390-bin-win-vulkan-x64.zip)
-2. Descomprime **todo el contenido** del `.zip` dentro de la carpeta `sys_tools` de tu USB. Asegúrate de que el archivo `llama-cli.exe` quede junto al script `.bat`.
+## Requisitos del USB
 
-### Paso 3: Descargar los Modelos de Lenguaje (GGUF)
-Descarga los modelos que quieras usar y guárdalos en la carpeta `sys_tools`. Haz clic en los siguientes enlaces para que comience la **descarga automática y directa**:
+| Caracteristica | Minimo | Recomendado |
+|---------------|--------|-------------|
+| Capacidad | 32 GB | 64 GB o 128 GB |
+| Velocidad | USB 3.0 | USB 3.1 / 3.2 |
+| Formato | exFAT | exFAT |
+| Lectura secuencial | 100 MB/s | 200+ MB/s |
 
-*   **(Opción 1) Precisión en Código C++ (Para PCs con ~8GB RAM):**
-    *   [Descargar Directo: qwen2.5-coder-7b-instruct-q4_k_m.gguf (4.3 GB)](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true)
-*   **(Opción 2) Depuración y Lógica Compleja (Para PCs con ~8GB RAM):**
-    *   [Descargar Directo: deepseek-r1-distill-qwen-7b-q4_k_m.gguf (4.7 GB)](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true)
-*   **(Opción 3) Consultas Generales Ligeras (Para PCs con ~4GB RAM):**
-    *   [Descargar Directo: llama-3.2-3b-instruct-q4_k_m.gguf (2.0 GB)](https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf?download=true)
-*   **(Opción 4) Precisión en Código Ligero (Para PCs con ~4GB RAM):**
-    *   [Descargar Directo: qwen2.5-coder-3b-instruct-q4_k_m.gguf (2.0 GB)](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true)
+Ten en cuenta que el USB tambien llevara tus apuntes, PDFs, proyectos y demas archivos de trabajo. Calculo de espacio aproximado:
 
-### Paso 4: Añadir el Script
-Copia el archivo `win_host.bat` de este repositorio dentro de la carpeta `sys_tools`. Te debe quedar algo así:
-```text
-(USB) E:
- └── sys_tools/
+| Contenido | Espacio |
+|-----------|---------|
+| Motor (llama.cpp + DLLs) | ~500 MB |
+| Modelo Qwen 3B | 2.0 GB |
+| Modelo Qwen 7B | 4.3 GB |
+| Modelo DeepSeek 7B | 4.7 GB |
+| **Total IA** | **~11.5 GB** |
+| Apuntes, PDFs, proyectos, etc. | Variable |
+
+- **32 GB**: cabe la IA completa + ~18 GB para tus archivos.
+- **64 GB**: espacio de sobra para todo. Lo mas recomendable.
+- **128 GB**: si quieres llevar absolutamente todo encima.
+- **USB 3.0 minimo**: con USB 2.0 el modelo tardaria varios minutos en cargar en vez de segundos.
+- **exFAT obligatorio**: FAT32 no permite archivos de mas de 4GB (los modelos de 7B pesan ~4.7GB).
+
+---
+
+## Instalacion
+
+### Paso 1: Formatear el USB
+
+1. Conecta el pendrive al PC.
+2. **Windows**: Clic derecho sobre la unidad en "Este equipo" > Formatear > Sistema de archivos: **exFAT** > Iniciar.
+3. **macOS**: Abre "Utilidad de Discos" > Selecciona el USB > Borrar > Formato: **ExFAT**.
+
+### Paso 2: Crear la carpeta oculta
+
+Crea una carpeta llamada **`.sys_tools`** en la raiz del USB.
+
+El punto al inicio del nombre (`.sys_tools`) la hace invisible automaticamente en macOS y Linux.
+
+### Paso 3: Ocultar la carpeta en Windows
+
+Abre CMD, navega a la raiz del USB y ejecuta:
+```cmd
+attrib +h +s +r .sys_tools
+```
+La carpeta desaparece del Explorador de archivos. Para acceder: `cd .sys_tools`.
+
+Para volver a verla:
+```cmd
+attrib -h -s -r .sys_tools
+```
+
+En macOS, ademas del punto, puedes ejecutar:
+```bash
+chflags hidden /Volumes/TuUSB/.sys_tools
+```
+
+### Paso 4: Descargar el motor de IA
+
+1. Descarga directa: [llama.cpp para Windows (Vulkan x64)](https://github.com/ggml-org/llama.cpp/releases/download/b8394/llama-b8394-bin-win-vulkan-x64.zip)
+2. Abre el `.zip`.
+3. Extrae **TODO el contenido** (todos los `.exe` y `.dll`) dentro de `.sys_tools`.
+4. Comprueba que `llama-cli.exe` esta dentro.
+
+### Paso 5: Descargar los modelos
+
+Descarga al menos los modelos 1 y 2. Haz clic en "Descargar" para iniciar la descarga directa, luego mueve el archivo `.gguf` a `.sys_tools`.
+
+| Opcion | Modelo | Para que sirve | RAM del PC | Tamaño | Descarga directa |
+|--------|--------|---------------|-----------|--------|-------------------|
+| 1 | Qwen2.5-Coder 3B | Codigo rapido (C++, Python, JS) | ~4 GB | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
+| 2 | Qwen2.5-Coder 7B | Codigo preciso y avanzado | ~8 GB | 4.3 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true) |
+| 3 | DeepSeek-R1 7B | Depuracion, logica, razonamiento | ~6 GB | 4.7 GB | [Descargar](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true) |
+| 4 | Phi-4 Mini 3.8B | Razonamiento + codigo (Microsoft) | ~4 GB | 2.5 GB | [Descargar](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
+| 5 | Gemma 3 4B | Generalista: resumenes, idiomas | ~4 GB | 2.8 GB | [Descargar](https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/resolve/main/google_gemma-3-4b-it-Q4_K_M.gguf?download=true) |
+
+### Paso 6: Copiar los scripts
+
+Descarga `win_host.bat` y `win_host.ps1` de este repositorio y ponlos en `.sys_tools`.
+
+### Estructura final
+
+```
+(USB) D:\
+ └── .sys_tools/                                        <- Oculta
       ├── llama-cli.exe
-      ├── qwen2.5-coder-7b-instruct-q4_k_m.gguf
-      ├── qwen2.5-coder-3b-instruct-q4_k_m.gguf
-      └── win_host.bat
+      ├── ggml-vulkan.dll
+      ├── ggml-cpu-*.dll
+      ├── (otros .dll del ZIP)
+      ├── qwen2.5-coder-3b-instruct-q4_k_m.gguf        <- Modelo 1
+      ├── Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf        <- Modelo 2
+      ├── deepseek-r1-distill-qwen-7b-q4_k_m.gguf       <- Modelo 3
+      ├── win_host.bat
+      └── win_host.ps1
 ```
 
 ---
 
-## Uso en la "Vida Real" (El "Hit & Run")
+## Como usarlo
 
-1. Conecta el USB a cualquier PC con Windows.
-2. Abre la terminal real del sistema operativo: Pulsa `Win + R`, escribe `cmd` y pulsa Enter.
-3. Navega a la letra de tu USB y a la carpeta:
-   ```cmd
-   E:
-   cd sys_tools
-   ```
-4. Lanza el script. Tienes varias "marchas" u opciones dependiendo de lo que busques o la potencia del PC:
-   *   `win_host` (o `win_host 1`): Lanza **Qwen 7B** (Recomendado para la mejor de programación, requiere ~8GB RAM).
-   *   `win_host 2`: Lanza **DeepSeek 7B** (Modo "Trace", ideal para debuggear lógica rota).
-   *   `win_host 3`: Lanza **Llama 3B** (Modo generalista super ligero).
-   *   `win_host 4`: Lanza **Qwen 3B** (Programación precisa para PCs poco potentes o con solo ~4GB de RAM).
-   
-5. Verás un pantallazo simulando que es Windows (`Microsoft Windows [Version 10.0.19045...]`). Tras unos segundos cargando en silencio, volverá a aparecer tu cursor de `C:\Users\Admin> `. A partir de ahí, **escribe tu problema o código en lenguaje natural** y pulsa Enter. La terminal escupirá la solución sin florituras.
+### Desde CMD
+
+```cmd
+D:
+cd .sys_tools
+win_host
+```
+
+### Desde PowerShell
+
+```powershell
+D:
+cd .sys_tools
+powershell -ExecutionPolicy Bypass -File .\win_host.ps1
+```
+
+(Sustituye `D:` por la letra de tu USB: `E:`, `F:`, etc.)
 
 ---
 
-*Proyecto de propósito educativo. Integrar modelos locales "bare-metal" sin dependencias.*
+## Que pasa al ejecutarlo
+
+1. Aparece un texto identico al de una consola de Windows real.
+2. El modelo se carga en silencio (unos segundos).
+3. Aparece el cursor: `C:\Users\Admin> ` (CMD) o `PS C:\Users\Admin> ` (PowerShell).
+4. Escribes tu pregunta y pulsas Enter.
+5. La IA responde en texto plano y devuelve el cursor.
+6. Para salir: `Ctrl + C`.
+
+Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal con salida de texto tecnico.
+
+---
+
+## Comandos
+
+### Seleccion de modelo
+
+**CMD:**
+| Comando | Modelo |
+|---------|--------|
+| `win_host` | Qwen 3B (defecto) |
+| `win_host 1` | Qwen 3B |
+| `win_host 2` | Qwen 7B |
+| `win_host 3` | DeepSeek R1 7B |
+| `win_host 4` | Phi-4 Mini |
+| `win_host 5` | Gemma 3 4B |
+
+**PowerShell:**
+| Comando | Modelo |
+|---------|--------|
+| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1` | Qwen 3B (defecto) |
+| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1 2` | Qwen 7B |
+| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1 3` | DeepSeek R1 7B |
+
+### Cuando usar cada modelo
+
+| Opcion | Modelo | Situacion | Velocidad en i7 (CPU) |
+|--------|--------|-----------|----------------------|
+| 1 | **Qwen 3B** | Escribir codigo C++: clases, STL, punteros, ficheros, templates. Tu dia a dia. | Rapido (~10 tok/s) |
+| 2 | **Qwen 7B** | Codigo C++ complejo y preciso. Cuando el 3B se queda corto. Necesita RAM. | Medio (~4 tok/s) |
+| 3 | **DeepSeek R1** | Cuando algo no compila y no sabes por que. Segfaults, bugs logicos, algoritmos. | Medio (~4 tok/s) |
+| 4 | **Phi-4 Mini** | Alternativa al Qwen 3B. Fuerte en matematicas y razonamiento. | Rapido (~9 tok/s) |
+| 5 | **Gemma 3** | Preguntas generales, resumenes, traducciones. Menos preciso en codigo. | Rapido (~8 tok/s) |
+
+### Controles dentro de la sesion
+
+| Tecla | Que hace |
+|-------|----------|
+| `Enter` | Enviar pregunta |
+| `Ctrl + C` | Cerrar la IA y volver a la terminal real |
+| Flecha arriba | Recuperar ultima pregunta |
+
+---
+
+## Precision de los modelos
+
+### Qwen2.5-Coder 3B (Opcion 1 - Recomendado)
+- Generacion de codigo (HumanEval): **~65-70%** — Comparable a GPT-3.5.
+- Domina C++ (STL, clases, herencia, punteros, templates, ficheros), Python, JavaScript.
+- Flojea en codigo muy largo (+200 lineas) o librerias especificas (Boost, Qt).
+
+### Qwen2.5-Coder 7B (Opcion 2 - El mas preciso)
+- Generacion de codigo (HumanEval): **~83-88%** — Nivel GPT-4 en codigo puro.
+- Escribe C++ casi perfecto. El mas preciso de todos.
+- Requiere ~8GB de RAM solo para el modelo. Si Windows ya usa 3GB, necesitas que el PC tenga al menos 12GB para que no se congele.
+
+### DeepSeek-R1 7B (Opcion 3 - Para depurar)
+- Razonamiento logico (MATH/GSM8K): **~75-80%** — Nivel GPT-4o-mini en razonamiento.
+- Su fuerte es ENTENDER por que algo falla, no escribir codigo desde cero.
+- El script ya incluye instrucciones para que NO muestre su proceso de razonamiento interno, asi mantiene la apariencia de terminal limpia.
+
+### Phi-4 Mini 3.8B (Opcion 4 - Microsoft)
+- Razonamiento (MATH): **~70-75%**.
+- Buen hibrido entre razonamiento y codigo. Ligero y rapido.
+- Buena opcion si necesitas razonar pero no quieres cargar el DeepSeek de 7B.
+
+### Gemma 3 4B (Opcion 5 - Google)
+- Tareas generales (MMLU): **~65%**.
+- Modelo generalista. Menos preciso en C++ que Qwen, pero util para redactar textos, resumir o traducir.
+
+---
+
+## Solucion de problemas
+
+### Sale `[SYS_ERROR]` y se cierra
+Abre el archivo `debug_log.txt` en `.sys_tools`. Ahi esta el error exacto.
+
+| Error | Causa | Solucion |
+|-------|-------|----------|
+| `error: invalid argument` | Version de llama.cpp incompatible | Descarga la ultima version del ZIP |
+| `failed to load model` | Archivo `.gguf` corrupto o incompleto | Vuelve a descargarlo |
+| `out of memory` / `alloc failed` | El PC no tiene RAM suficiente | Usa un modelo mas pequeno (opcion 1 o 4) |
+| `vulkan error` | El PC no tiene GPU Vulkan | No pasa nada, sigue funcionando en CPU |
+
+### Al escribir se ejecuta como comando real
+La IA ha crasheado y estas en la terminal real. Revisa `debug_log.txt` y prueba con un modelo mas ligero.
+
+---
+
+## Discrecion
+
+- No instala nada en el PC. Todo vive en el USB.
+- No necesita permisos de administrador.
+- No necesita internet.
+- Al desconectar el USB no queda rastro en el disco duro.
+- La carpeta `.sys_tools` es invisible en cualquier explorador de archivos.
+- Si te preguntan: "Estoy compilando un proyecto" o "Son los tests del compilador".
+
+---
+
+*Proyecto de proposito educativo.*
