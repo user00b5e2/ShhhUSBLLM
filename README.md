@@ -10,8 +10,9 @@ Escribes tu pregunta en lenguaje natural, la IA responde en texto plano. Especia
 
 | Archivo | Descripcion |
 |---------|-------------|
-| `win_host.bat` | Script lanzador para CMD |
-| `win_host.ps1` | Script lanzador para PowerShell |
+| `shhh.bat` | Lanzador principal (aspecto CMD) |
+| `shhh.ps1` | Lanzador con aspecto de PowerShell |
+| `shhhps.bat` | Atajo para lanzar el de PowerShell |
 | `README.md` | Esta guia |
 
 Los modelos de IA y el motor de ejecucion NO estan incluidos porque pesan varios GB. Descargalos siguiendo los pasos de abajo.
@@ -89,7 +90,7 @@ chflags hidden /Volumes/TuUSB/.sys_tools
 
 Descarga al menos los modelos 1 y 2. Haz clic en "Descargar" para iniciar la descarga directa, luego mueve el archivo `.gguf` a `.sys_tools`.
 
-| Opcion | Modelo | Para que sirve | RAM del PC | Tamaño | Descarga directa |
+| Opcion | Modelo | Para que sirve | RAM del PC | Tamano | Descarga directa |
 |--------|--------|---------------|-----------|--------|-------------------|
 | 1 | Qwen2.5-Coder 3B | Codigo rapido (C++, Python, JS) | ~4 GB | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
 | 2 | Qwen2.5-Coder 7B | Codigo preciso y avanzado | ~8 GB | 4.3 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true) |
@@ -99,7 +100,7 @@ Descarga al menos los modelos 1 y 2. Haz clic en "Descargar" para iniciar la des
 
 ### Paso 6: Copiar los scripts
 
-Descarga `win_host.bat` y `win_host.ps1` de este repositorio y ponlos en `.sys_tools`.
+Descarga `shhh.bat`, `shhh.ps1` y `shhhps.bat` de este repositorio y ponlos en `.sys_tools`.
 
 ### Estructura final
 
@@ -113,31 +114,30 @@ Descarga `win_host.bat` y `win_host.ps1` de este repositorio y ponlos en `.sys_t
       ├── qwen2.5-coder-3b-instruct-q4_k_m.gguf        <- Modelo 1
       ├── Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf        <- Modelo 2
       ├── deepseek-r1-distill-qwen-7b-q4_k_m.gguf       <- Modelo 3
-      ├── win_host.bat
-      └── win_host.ps1
+      ├── shhh.bat
+      ├── shhh.ps1
+      └── shhhps.bat
 ```
 
 ---
 
 ## Como usarlo
 
-### Desde CMD
+### Desde CMD o PowerShell (mismo comando)
 
-```cmd
-D:
-cd .sys_tools
-win_host
 ```
-
-### Desde PowerShell
-
-```powershell
 D:
 cd .sys_tools
-powershell -ExecutionPolicy Bypass -File .\win_host.ps1
+shhh
 ```
 
 (Sustituye `D:` por la letra de tu USB: `E:`, `F:`, etc.)
+
+El comando `shhh` funciona igual tanto desde CMD como desde PowerShell (aspecto CMD). Si quieres el aspecto visual de PowerShell, usa `shhhps`:
+```
+shhhps
+shhhps 2
+```
 
 ---
 
@@ -148,7 +148,7 @@ powershell -ExecutionPolicy Bypass -File .\win_host.ps1
 3. Aparece el cursor: `C:\Users\Admin> ` (CMD) o `PS C:\Users\Admin> ` (PowerShell).
 4. Escribes tu pregunta y pulsas Enter.
 5. La IA responde en texto plano y devuelve el cursor.
-6. Para salir: `Ctrl + C`.
+6. Para salir: cierra la ventana con la X.
 
 Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal con salida de texto tecnico.
 
@@ -158,22 +158,26 @@ Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal
 
 ### Seleccion de modelo
 
-**CMD:**
 | Comando | Modelo |
 |---------|--------|
-| `win_host` | Qwen 3B (defecto) |
-| `win_host 1` | Qwen 3B |
-| `win_host 2` | Qwen 7B |
-| `win_host 3` | DeepSeek R1 7B |
-| `win_host 4` | Phi-4 Mini |
-| `win_host 5` | Gemma 3 4B |
+| `shhh` | Qwen 3B (defecto) |
+| `shhh 1` | Qwen 3B |
+| `shhh 2` | Qwen 7B |
+| `shhh 3` | DeepSeek R1 7B |
+| `shhh 4` | Phi-4 Mini |
+| `shhh 5` | Gemma 3 4B |
 
-**PowerShell:**
+**PowerShell (aspecto PS):**
 | Comando | Modelo |
 |---------|--------|
-| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1` | Qwen 3B (defecto) |
-| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1 2` | Qwen 7B |
-| `powershell -ExecutionPolicy Bypass -File .\win_host.ps1 3` | DeepSeek R1 7B |
+| `shhhps` | Qwen 3B (defecto) |
+| `shhhps 1` | Qwen 3B |
+| `shhhps 2` | Qwen 7B |
+| `shhhps 3` | DeepSeek R1 7B |
+| `shhhps 4` | Phi-4 Mini |
+| `shhhps 5` | Gemma 3 4B |
+
+Tambien puedes usar el comando largo equivalente: `powershell -ExecutionPolicy Bypass -File .\shhh.ps1 2`
 
 ### Cuando usar cada modelo
 
