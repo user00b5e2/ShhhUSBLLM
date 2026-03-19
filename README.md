@@ -1,21 +1,6 @@
 # Shhh USB LLM
 
-Terminal de Inteligencia Artificial portable que se ejecuta desde un USB en Windows. Se camufla como una sesion normal del Simbolo del sistema (`cmd.exe`) o PowerShell. Sin instalacion, sin internet, sin rastro.
-
-Escribes tu pregunta en lenguaje natural, la IA responde en texto plano. Especializado en programacion (C++, Python, etc.) y razonamiento logico.
-
----
-
-## Que contiene este repositorio
-
-| Archivo | Descripcion |
-|---------|-------------|
-| `shhh.bat` | Lanzador principal (aspecto CMD) |
-| `shhh.ps1` | Lanzador con aspecto de PowerShell |
-| `shhhps.bat` | Atajo para lanzar el de PowerShell |
-| `README.md` | Esta guia |
-
-Los modelos de IA y el motor de ejecucion NO estan incluidos porque pesan varios GB. Descargalos siguiendo los pasos de abajo.
+Terminal de IA portable desde USB en Windows. Se camufla como CMD o PowerShell. Sin instalacion, sin internet, sin rastro.
 
 ---
 
@@ -23,97 +8,126 @@ Los modelos de IA y el motor de ejecucion NO estan incluidos porque pesan varios
 
 | Caracteristica | Minimo | Recomendado |
 |---------------|--------|-------------|
-| Capacidad | 32 GB | 64 GB o 128 GB |
-| Velocidad | USB 3.0 | USB 3.1 / 3.2 |
+| Capacidad | 32 GB | 64-128 GB |
+| Velocidad | USB 3.0 (100+ MB/s) | USB 3.1/3.2 (200+ MB/s) |
 | Formato | exFAT | exFAT |
-| Lectura secuencial | 100 MB/s | 200+ MB/s |
 
-Ten en cuenta que el USB tambien llevara tus apuntes, PDFs, proyectos y demas archivos de trabajo. Calculo de espacio aproximado:
+Espacio aproximado:
 
 | Contenido | Espacio |
 |-----------|---------|
-| Motor (llama.cpp + DLLs) | ~500 MB |
-| Modelo Qwen 3B | 2.0 GB |
-| Modelo Qwen 7B | 4.3 GB |
-| Modelo DeepSeek 7B | 4.7 GB |
-| **Total IA** | **~11.5 GB** |
-| Apuntes, PDFs, proyectos, etc. | Variable |
+| Motor + DLLs | ~500 MB |
+| Todo tier 4 GB (4 modelos) | ~8.4 GB |
+| Todo tier 8 GB (3 modelos) | ~15.5 GB |
+| Modelo 14B (tier 12 GB) | ~8.7 GB |
+| **Todos los modelos** | **~25 GB** |
+| Apuntes, PDFs, proyectos | Variable |
 
-- **32 GB**: cabe la IA completa + ~18 GB para tus archivos.
-- **64 GB**: espacio de sobra para todo. Lo mas recomendable.
-- **128 GB**: si quieres llevar absolutamente todo encima.
-- **USB 3.0 minimo**: con USB 2.0 el modelo tardaria varios minutos en cargar en vez de segundos.
-- **exFAT obligatorio**: FAT32 no permite archivos de mas de 4GB (los modelos de 7B pesan ~4.7GB).
+Con un USB de 64 GB caben todos los modelos + ~35 GB para tus archivos.
 
 ---
 
 ## Instalacion
 
-### Paso 1: Formatear el USB
+### 1. Formatear en exFAT
 
-1. Conecta el pendrive al PC.
-2. **Windows**: Clic derecho sobre la unidad en "Este equipo" > Formatear > Sistema de archivos: **exFAT** > Iniciar.
-3. **macOS**: Abre "Utilidad de Discos" > Selecciona el USB > Borrar > Formato: **ExFAT**.
+- **Windows**: Clic derecho en la unidad > Formatear > exFAT.
+- **macOS**: Utilidad de Discos > Borrar > ExFAT.
 
-### Paso 2: Crear la carpeta oculta
+### 2. Crear la carpeta oculta
 
-Crea una carpeta llamada **`.sys_tools`** en la raiz del USB.
+Windows crea automaticamente una carpeta llamada `System Volume Information` en cada unidad. Es invisible por defecto y nadie la abre jamas. Vamos a usarla.
 
-El punto al inicio del nombre (`.sys_tools`) la hace invisible automaticamente en macOS y Linux.
-
-### Paso 3: Ocultar la carpeta en Windows
-
-Abre CMD, navega a la raiz del USB y ejecuta:
-```cmd
-attrib +h +s +r .sys_tools
-```
-La carpeta desaparece del Explorador de archivos. Para acceder: `cd .sys_tools`.
-
-Para volver a verla:
-```cmd
-attrib -h -s -r .sys_tools
-```
-
-En macOS, ademas del punto, puedes ejecutar:
+**Desde macOS (Terminal):**
 ```bash
-chflags hidden /Volumes/TuUSB/.sys_tools
+mkdir "/Volumes/TuUSB/System Volume Information"
+chflags hidden "/Volumes/TuUSB/System Volume Information"
+```
+(Sustituye `TuUSB` por el nombre de tu pendrive.)
+
+- `chflags hidden` marca la carpeta como invisible en macOS (Finder) y ademas en exFAT establece el atributo oculto que Windows respeta.
+- El nombre `System Volume Information` hace que Windows la trate como carpeta de sistema propia, ocultandola automaticamente.
+- En Linux, los gestores de archivos (Nautilus, Dolphin, Thunar) reconocen este nombre y la ocultan.
+
+**Recomendado:** la primera vez que conectes el USB a Windows, abre CMD y ejecuta esto para blindar los atributos:
+```cmd
+D:
+attrib +h +s +r "System Volume Information"
+```
+Esto annade los atributos de sistema + oculto + solo lectura. A partir de ahi, la carpeta es invisible en el Explorador de archivos incluso con "Mostrar archivos ocultos" activado (porque tiene el atributo sistema ademas del oculto).
+
+Al conectar el USB a Windows, el SO NO borra el contenido de la carpeta. Puede que anada algun archivo pequeno suyo (como `IndexerVolumeGuid`), lo cual es perfecto: hace que los archivos parezcan aun mas legitimos.
+
+Para acceder a ella:
+```cmd
+cd "System Volume Information"
 ```
 
-### Paso 4: Descargar el motor de IA
+### 3. Descargar el motor
 
-1. Descarga directa: [llama.cpp para Windows (Vulkan x64)](https://github.com/ggml-org/llama.cpp/releases/download/b8394/llama-b8394-bin-win-vulkan-x64.zip)
-2. Abre el `.zip`.
-3. Extrae **TODO el contenido** (todos los `.exe` y `.dll`) dentro de `.sys_tools`.
-4. Comprueba que `llama-cli.exe` esta dentro.
+[Descargar llama.cpp Windows Vulkan x64](https://github.com/ggml-org/llama.cpp/releases/download/b8394/llama-b8394-bin-win-vulkan-x64.zip) → Extraer TODO dentro de `System Volume Information`.
 
-### Paso 5: Descargar los modelos
+### 4. Disfrazar el ejecutable
 
-Descarga al menos los modelos 1 y 2. Haz clic en "Descargar" para iniciar la descarga directa, luego mueve el archivo `.gguf` a `.sys_tools`.
+```cmd
+ren llama-cli.exe hostcfg.exe
+```
 
-| Opcion | Modelo | Para que sirve | RAM del PC | Tamano | Descarga directa |
-|--------|--------|---------------|-----------|--------|-------------------|
-| 1 | Qwen2.5-Coder 3B | Codigo rapido (C++, Python, JS) | ~4 GB | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
-| 2 | Qwen2.5-Coder 7B | Codigo preciso y avanzado | ~8 GB | 4.3 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true) |
-| 3 | DeepSeek-R1 7B | Depuracion, logica, razonamiento | ~6 GB | 4.7 GB | [Descargar](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true) |
-| 4 | Phi-4 Mini 3.8B | Razonamiento + codigo (Microsoft) | ~4 GB | 2.5 GB | [Descargar](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
-| 5 | Gemma 3 4B | Generalista: resumenes, idiomas | ~4 GB | 2.8 GB | [Descargar](https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/resolve/main/google_gemma-3-4b-it-Q4_K_M.gguf?download=true) |
+### 5. Descargar y disfrazar los modelos
 
-### Paso 6: Copiar los scripts
+Descarga, mueve a la carpeta y renombra. No necesitas descargarlos todos, solo los que vayas a usar segun la RAM del PC.
 
-Descarga `shhh.bat`, `shhh.ps1` y `shhhps.bat` de este repositorio y ponlos en `.sys_tools`.
+**PCs con 4 GB de RAM:**
+
+| Opcion | Modelo | Renombrar a | Peso | Descarga |
+|--------|--------|-------------|------|----------|
+| 0 | Qwen2.5-Coder 1.5B | `syscache_00.dat` | 1.1 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf?download=true) |
+
+**PCs con 6-8 GB de RAM:**
+
+| Opcion | Modelo | Renombrar a | Peso | Descarga |
+|--------|--------|-------------|------|----------|
+| 1 | Qwen2.5-Coder 3B | `syscache_01.dat` | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
+| 2 | Phi-4 Mini 3.8B | `syscache_02.dat` | 2.5 GB | [Descargar](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
+| 3 | Gemma 3 4B | `syscache_03.dat` | 2.8 GB | [Descargar](https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/resolve/main/google_gemma-3-4b-it-Q4_K_M.gguf?download=true) |
+| 4 | **Qwen3.5-4B** ★ | `syscache_04.dat` | 3.1 GB | [Descargar](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf?download=true) |
+
+**PCs con 10-12 GB de RAM:**
+
+| Opcion | Modelo | Renombrar a | Peso | Descarga |
+|--------|--------|-------------|------|----------|
+| 5 | **Qwen2.5-Coder 7B** ★ | `syscache_05.dat` | 4.3 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true) |
+| 6 | DeepSeek-R1 7B | `syscache_06.dat` | 4.7 GB | [Descargar](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true) |
+| 7 | **Qwen3.5-9B** ★ | `syscache_07.dat` | 6.5 GB | [Descargar](https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf?download=true) |
+
+**PCs con 16 GB de RAM:**
+
+| Opcion | Modelo | Renombrar a | Peso | Descarga |
+|--------|--------|-------------|------|----------|
+| 8 | **Qwen2.5-Coder 14B** ★★ | `syscache_08.dat` | 8.7 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-14B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf?download=true) |
+
+★ = recomendado en su categoria. ★★ = lo mejor que existe en local.
+
+Ejemplo de renombrado:
+```cmd
+ren qwen2.5-coder-1.5b-instruct-q4_k_m.gguf syscache_00.dat
+```
+
+### 6. Copiar los scripts
+
+Copia `shhh.bat`, `shhh.ps1` y `shhhps.bat` dentro de la carpeta.
 
 ### Estructura final
 
 ```
 (USB) D:\
- └── .sys_tools/                                        <- Oculta
-      ├── llama-cli.exe
-      ├── ggml-vulkan.dll
-      ├── ggml-cpu-*.dll
-      ├── (otros .dll del ZIP)
-      ├── qwen2.5-coder-3b-instruct-q4_k_m.gguf        <- Modelo 1
-      ├── Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf        <- Modelo 2
-      ├── deepseek-r1-distill-qwen-7b-q4_k_m.gguf       <- Modelo 3
+ └── System Volume Information/    <- Invisible por defecto
+      ├── hostcfg.exe              <- Motor disfrazado
+      ├── (DLLs del ZIP)
+      ├── syscache_00.dat          <- Qwen 1.5B
+      ├── syscache_04.dat          <- Qwen3.5-4B (defecto)
+      ├── syscache_05.dat          <- Qwen2.5-Coder 7B
+      ├── (otros syscache_XX.dat)
       ├── shhh.bat
       ├── shhh.ps1
       └── shhhps.bat
@@ -123,191 +137,124 @@ Descarga `shhh.bat`, `shhh.ps1` y `shhhps.bat` de este repositorio y ponlos en `
 
 ## Como usarlo
 
-### Desde CMD o PowerShell (mismo comando)
-
 ```
 D:
-cd .sys_tools
+cd "System Volume Information"
 shhh
 ```
+(Sustituye `D:` por la letra de tu USB.)
 
-(Sustituye `D:` por la letra de tu USB: `E:`, `F:`, etc.)
-
-El comando `shhh` funciona igual tanto desde CMD como desde PowerShell (aspecto CMD). Si quieres el aspecto visual de PowerShell, usa `shhhps`:
-```
-shhhps
-shhhps 2
-```
-
----
-
-## Que pasa al ejecutarlo
-
-1. Aparece un texto identico al de una consola de Windows real.
-2. El modelo se carga en silencio (unos segundos).
-3. Aparece el cursor: `C:\Users\Admin> ` (CMD) o `PS C:\Users\Admin> ` (PowerShell).
-4. Escribes tu pregunta y pulsas Enter.
-5. La IA responde en texto plano y devuelve el cursor.
-6. Para salir: cierra la ventana con la X.
-
-Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal con salida de texto tecnico.
+Para aspecto PowerShell: `shhhps`
 
 ---
 
 ## Comandos
 
-### Seleccion de modelo
+### shhh (CMD) / shhhps (PowerShell)
 
-**Modo codigo (solo devuelve codigo, sin explicaciones):**
-| Comando | Modelo |
-|---------|--------|
-| `shhh` | Qwen 3B (defecto) |
-| `shhh 1` | Qwen 3B |
-| `shhh 2` | Qwen 7B |
-| `shhh 3` | DeepSeek R1 7B |
-| `shhh 4` | Phi-4 Mini |
-| `shhh 5` | Gemma 3 4B |
+| Comando | Modelo | RAM del PC | HumanEval | Velocidad |
+|---------|--------|-----------|-----------|-----------|
+| `shhh 0` | Qwen2.5-Coder 1.5B | 4 GB | ~50% | Muy rapido |
+| `shhh 1` | Qwen2.5-Coder 3B | 6 GB | ~67% | Rapido |
+| `shhh 2` | Phi-4 Mini 3.8B | 6 GB | ~72% | Rapido |
+| `shhh 3` | Gemma 3 4B | 6 GB | ~65% | Rapido |
+| `shhh` o `shhh 4` | **Qwen3.5-4B** ★ | 8 GB | ~78% | Rapido |
+| `shhh 5` | **Qwen2.5-Coder 7B** ★ | 10 GB | ~88% | Medio |
+| `shhh 6` | DeepSeek R1 7B | 10 GB | ~78% | Medio |
+| `shhh 7` | **Qwen3.5-9B** ★ | 12 GB | ~83% | Medio |
+| `shhh 8` | **Qwen2.5-Coder 14B** ★★ | 16 GB | ~92% | Lento |
 
-**Modo explicacion (explica paso a paso, como un tutor):**
-| Comando | Modelo |
-|---------|--------|
-| `shhh e` | Qwen 3B (defecto) |
-| `shhh e 1` | Qwen 3B |
-| `shhh e 2` | Qwen 7B |
-| `shhh e 3` | DeepSeek R1 7B |
-| `shhh e 4` | Phi-4 Mini |
-| `shhh e 5` | Gemma 3 4B |
+La columna "RAM del PC" es la RAM TOTAL que necesita el PC (sistema + modelo). Windows con un par de apps abiertas consume ~3 GB.
 
-**PowerShell — modo codigo (aspecto PS):**
-| Comando | Modelo |
-|---------|--------|
-| `shhhps` | Qwen 3B (defecto) |
-| `shhhps 1` | Qwen 3B |
-| `shhhps 2` | Qwen 7B |
-| `shhhps 3` | DeepSeek R1 7B |
-| `shhhps 4` | Phi-4 Mini |
-| `shhhps 5` | Gemma 3 4B |
+**Modo explicacion:** Antepon `e`. Ejemplo: `shhh e 5` = Qwen 7B con explicaciones breves.
 
-**PowerShell — modo explicacion (aspecto PS):**
-| Comando | Modelo |
-|---------|--------|
-| `shhhps e` | Qwen 3B (defecto) |
-| `shhhps e 1` | Qwen 3B |
-| `shhhps e 2` | Qwen 7B |
-| `shhhps e 3` | DeepSeek R1 7B |
-| `shhhps e 4` | Phi-4 Mini |
-| `shhhps e 5` | Gemma 3 4B |
+Para PowerShell, sustituye `shhh` por `shhhps`. Ejemplo: `shhhps 5`, `shhhps e 5`.
 
-Tambien puedes usar el comando largo equivalente: `powershell -ExecutionPolicy Bypass -File .\shhh.ps1 2`
-
-### Diferencia entre shhh y shhhps
+### Diferencia shhh vs shhhps
 
 | | `shhh` | `shhhps` |
-|---|--------|----------|
-| Apariencia | Simbolo del sistema (CMD) | PowerShell |
-| Texto inicial | `Microsoft Windows [Version 10.0...]` | `Windows PowerShell Copyright (C)...` |
-| Prompt | `C:\Users\Admin> ` | `PS C:\Users\Admin> ` |
+|--|--------|----------|
+| Apariencia | CMD (fondo negro) | PowerShell (fondo azul) |
 | Funciona desde | CMD y PowerShell | Solo PowerShell |
 
-Usa `shhh` si la terminal del PC es CMD (lo mas comun en PCs de universidad). Usa `shhhps` si la terminal es PowerShell (ventana azul). Elige el que coincida con lo que ya tiene abierto el PC para que no se note nada raro.
-
-### Cuando usar cada modelo
-
-| Opcion | Modelo | Contexto max | Situacion | Velocidad (i7 CPU) |
-|--------|--------|-------------|-----------|-------------------|
-| 1 | **Qwen 3B** | 32K tokens | Escribir codigo C++: clases, STL, punteros, ficheros, templates. Tu dia a dia. | Rapido (~10 tok/s) |
-| 2 | **Qwen 7B** | 32K tokens | Codigo C++ complejo y preciso. Cuando el 3B se queda corto. Necesita RAM. | Medio (~4 tok/s) |
-| 3 | **DeepSeek R1** | 64K tokens | Cuando algo no compila y no sabes por que. Segfaults, bugs logicos, algoritmos. | Medio (~4 tok/s) |
-| 4 | **Phi-4 Mini** | 16K tokens | Alternativa al Qwen 3B. Fuerte en matematicas y razonamiento. | Rapido (~9 tok/s) |
-| 5 | **Gemma 3** | 32K tokens | Preguntas generales, resumenes, traducciones. Menos preciso en codigo. | Rapido (~8 tok/s) |
-
-El contexto esta limitado a 4096 tokens en el script para ahorrar RAM. Los valores de la tabla son los maximos que soporta cada modelo. Si tienes RAM de sobra, puedes aumentarlo editando `-c 4096` en el script.
-
-### Como escribir preguntas
-
-- **Todo en una linea.** Cada vez que pulsas Enter, la pregunta se envia inmediatamente. No hay forma de escribir varias lineas; cada Enter = enviar.
-- **Se directo.** En vez de "puedes ayudarme con un programa", escribe: "funcion en C++ que ordene un vector de enteros con quicksort".
-- **Pega codigo en una sola linea.** Si necesitas que analice tu codigo, copia y pega todo seguido. La IA lo entiende aunque pierda el formato. Ejemplo: `#include <iostream> using namespace std; int main() { cout << "hola"; return 0; }`
-- **Pide correcciones especificas.** En vez de "arreglalo", di: "este codigo da segfault, la variable p no esta inicializada, como lo corrijo".
-- **Evita acentos y caracteres raros** si puedes. Algunos modelos se confunden con caracteres especiales en CMD.
-
-### Ejemplos de uso
-
-```
-C:\Users\Admin> funcion en C++ que lea un fichero linea a linea y cuente palabras
-C:\Users\Admin> implementa una clase Pila con push pop y top usando templates
-C:\Users\Admin> este codigo da error de compilacion: int x = "hola"; por que?
-C:\Users\Admin> como hago un makefile para compilar main.cpp y utils.cpp
-C:\Users\Admin> ordena este vector con mergesort: {5, 3, 8, 1, 9, 2}
-```
-
-### Controles dentro de la sesion
-
-| Tecla / Accion | Que hace |
-|----------------|----------|
-| `Enter` | Enviar pregunta |
-| Seleccionar texto + clic derecho | Copiar (CMD clasico) |
-| Clic derecho | Pegar (CMD clasico) |
-| `Ctrl + Shift + C` | Copiar (Windows Terminal) |
-| `Ctrl + Shift + V` | Pegar (Windows Terminal) |
-| Flecha arriba | Recuperar ultima pregunta |
-| Cerrar la ventana (X) | Salir |
+Usa el que coincida con la terminal que ya tiene abierta el PC.
 
 ---
 
-## Precision de los modelos
+## Que modelo usar
 
-### Qwen2.5-Coder 3B (Opcion 1 - Recomendado)
-- Generacion de codigo (HumanEval): **~65-70%** — Comparable a GPT-3.5.
-- Domina C++ (STL, clases, herencia, punteros, templates, ficheros), Python, JavaScript.
-- Flojea en codigo muy largo (+200 lineas) o librerias especificas (Boost, Qt).
+### PC con 4 GB RAM → `shhh 0`
+Qwen2.5-Coder 1.5B. Es limitado pero funciona. Genera snippets cortos de C/C++, Python. Se equivoca mas que los grandes pero es tu unica opcion con tan poca RAM.
 
-### Qwen2.5-Coder 7B (Opcion 2 - El mas preciso)
-- Generacion de codigo (HumanEval): **~83-88%** — Nivel GPT-4 en codigo puro.
-- Escribe C++ casi perfecto. El mas preciso de todos.
-- Requiere ~8GB de RAM solo para el modelo. Si Windows ya usa 3GB, necesitas que el PC tenga al menos 12GB para que no se congele.
+### PC con 6-8 GB RAM → `shhh` (defecto = Qwen3.5-4B)
+El mejor equilibrio calidad/velocidad. Marzo 2026, ultima generacion. Supera a modelos de 7B de 2024. Escribe C++ correcto la mayor parte del tiempo.
 
-### DeepSeek-R1 7B (Opcion 3 - Para depurar)
-- Razonamiento logico (MATH/GSM8K): **~75-80%** — Nivel GPT-4o-mini en razonamiento.
-- Su fuerte es ENTENDER por que algo falla, no escribir codigo desde cero.
-- El script ya incluye instrucciones para que NO muestre su proceso de razonamiento interno, asi mantiene la apariencia de terminal limpia.
+### PC con 10-12 GB RAM → `shhh 5` (Qwen2.5-Coder 7B)
+El mejor modelo de codigo en 7B que existe. 88% en HumanEval, casi GPT-4o. Si el PC aguanta, este es el que quieres para codigo puro.
 
-### Phi-4 Mini 3.8B (Opcion 4 - Microsoft)
-- Razonamiento (MATH): **~70-75%**.
-- Buen hibrido entre razonamiento y codigo. Ligero y rapido.
-- Buena opcion si necesitas razonar pero no quieres cargar el DeepSeek de 7B.
+### PC con 16 GB RAM → `shhh 8` (Qwen2.5-Coder 14B)
+92% en HumanEval. Nivel GPT-4o. Lo mejor que puedes correr en local. C++ casi perfecto.
 
-### Gemma 3 4B (Opcion 5 - Google)
-- Tareas generales (MMLU): **~65%**.
-- Modelo generalista. Menos preciso en C++ que Qwen, pero util para redactar textos, resumir o traducir.
+### Para depurar → `shhh 6` (DeepSeek R1 7B)
+No para escribir codigo, sino para entender POR QUE falla. Segfaults, errores logicos, algoritmos.
+
+---
+
+## Como escribir preguntas
+
+- **Todo en una linea.** Cada Enter envia inmediatamente.
+- **Se directo.** "funcion C++ que ordene vector con quicksort"
+- **Pega codigo en una sola linea.** La IA lo entiende.
+- **Evita acentos** si puedes.
+
+### Controles
+
+| Accion | Que hace |
+|--------|----------|
+| `Enter` | Enviar pregunta |
+| Seleccionar + clic derecho | Copiar (CMD) |
+| Clic derecho | Pegar (CMD) |
+| `Ctrl + Shift + C/V` | Copiar/Pegar (Windows Terminal) |
+| Flecha arriba | Ultima pregunta |
+| Cerrar ventana (X) | Salir (borra historial) |
+
+---
+
+## Capas de sigilo
+
+1. **Carpeta de sistema**: Los archivos viven dentro de `System Volume Information`, una carpeta que Windows crea automaticamente en cada unidad y que es invisible por defecto. Nadie la abre jamas. Si alguien la ve, asumira que es del propio Windows.
+
+2. **Archivos disfrazados**: El motor se llama `hostcfg.exe` (parece un servicio de red). Los modelos se llaman `syscache_0X.dat` (parecen caches del sistema).
+
+3. **Limitacion conocida: `llama.dll`**: El ZIP del motor trae DLLs como `ggml-vulkan.dll`, `ggml-cpu-*.dll` y `llama.dll`. No se pueden renombrar porque el motor las busca por nombre exacto. En la practica, `ggml` no significa nada para nadie, y `llama.dll` es un nombre generico que podria ser cualquier libreria. Solo alguien que conozca el proyecto llama.cpp lo reconoceria, y para llegar hasta ahi tendria que: (1) saber que la carpeta existe, (2) desactivar la proteccion de archivos de sistema, (3) entrar y leer nombres de DLLs. Improbable.
+
+4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt son identicos a una terminal real de Windows. No hay prefijos de "Usuario" ni "Asistente".
+
+5. **Silencio absoluto**: Toda la salida tecnica del motor (carga, memoria, tiempos) se redirige a la nada. Los logs estan desactivados. La pantalla permanece limpia.
+
+6. **Rutas dinamicas**: Los scripts detectan automaticamente la ruta del USB. Funciona sin importar que letra asigne Windows.
+
+7. **Historial borrado**: Al cerrar, el historial de comandos de CMD y PowerShell se borra automaticamente. Nadie puede pulsar flecha arriba para ver que ejecutaste.
 
 ---
 
 ## Solucion de problemas
 
-### Sale `[SYS_ERROR]` y se cierra
-Abre el archivo `debug_log.txt` en `.sys_tools`. Ahi esta el error exacto.
-
-| Error | Causa | Solucion |
-|-------|-------|----------|
-| `error: invalid argument` | Version de llama.cpp incompatible | Descarga la ultima version del ZIP |
-| `failed to load model` | Archivo `.gguf` corrupto o incompleto | Vuelve a descargarlo |
-| `out of memory` / `alloc failed` | El PC no tiene RAM suficiente | Usa un modelo mas pequeno (opcion 1 o 4) |
-| `vulkan error` | El PC no tiene GPU Vulkan | No pasa nada, sigue funcionando en CPU |
-
-### Al escribir se ejecuta como comando real
-La IA ha crasheado y estas en la terminal real. Revisa `debug_log.txt` y prueba con un modelo mas ligero.
+| Error | Solucion |
+|-------|----------|
+| `Core executable missing` | Renombraste `llama-cli.exe` a `hostcfg.exe`? |
+| `Modulo no encontrado` | Renombraste el modelo a `syscache_0X.dat`? |
+| Se cierra sin mostrar nada | Prueba un modelo mas ligero (0, 1 o 2) |
+| Se congela o va muy lento | El PC no tiene RAM suficiente para ese modelo |
 
 ---
 
 ## Discrecion
 
-- No instala nada en el PC. Todo vive en el USB.
-- No necesita permisos de administrador.
-- No necesita internet.
-- Al desconectar el USB no queda rastro en el disco duro.
-- La carpeta `.sys_tools` es invisible en cualquier explorador de archivos.
-- Si te preguntan: "Estoy compilando un proyecto" o "Son los tests del compilador".
+- No instala nada. No necesita admin. No necesita internet.
+- No deja rastro en disco duro ni en historial.
+- Los archivos viven en una carpeta que Windows nunca muestra.
+- Si te preguntan: "Estoy comprobando la integridad del disco."
 
 ---
 
