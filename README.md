@@ -158,6 +158,7 @@ Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal
 
 ### Seleccion de modelo
 
+**Modo codigo (solo devuelve codigo, sin explicaciones):**
 | Comando | Modelo |
 |---------|--------|
 | `shhh` | Qwen 3B (defecto) |
@@ -167,27 +168,55 @@ Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal
 | `shhh 4` | Phi-4 Mini |
 | `shhh 5` | Gemma 3 4B |
 
+**Modo explicacion (explica paso a paso, como un tutor):**
+| Comando | Modelo |
+|---------|--------|
+| `shhh e` | Qwen 3B (defecto) |
+| `shhh e 1` | Qwen 3B |
+| `shhh e 2` | Qwen 7B |
+| `shhh e 3` | DeepSeek R1 7B |
+| `shhh e 4` | Phi-4 Mini |
+| `shhh e 5` | Gemma 3 4B |
+
 **PowerShell (aspecto PS):**
 | Comando | Modelo |
 |---------|--------|
-| `shhhps` | Qwen 3B (defecto) |
-| `shhhps 1` | Qwen 3B |
-| `shhhps 2` | Qwen 7B |
-| `shhhps 3` | DeepSeek R1 7B |
-| `shhhps 4` | Phi-4 Mini |
-| `shhhps 5` | Gemma 3 4B |
+| `shhhps` | Qwen 3B (codigo) |
+| `shhhps 2` | Qwen 7B (codigo) |
+| `shhhps e` | Qwen 3B (explicacion) |
+| `shhhps e 2` | Qwen 7B (explicacion) |
 
 Tambien puedes usar el comando largo equivalente: `powershell -ExecutionPolicy Bypass -File .\shhh.ps1 2`
 
 ### Cuando usar cada modelo
 
-| Opcion | Modelo | Situacion | Velocidad en i7 (CPU) |
-|--------|--------|-----------|----------------------|
-| 1 | **Qwen 3B** | Escribir codigo C++: clases, STL, punteros, ficheros, templates. Tu dia a dia. | Rapido (~10 tok/s) |
-| 2 | **Qwen 7B** | Codigo C++ complejo y preciso. Cuando el 3B se queda corto. Necesita RAM. | Medio (~4 tok/s) |
-| 3 | **DeepSeek R1** | Cuando algo no compila y no sabes por que. Segfaults, bugs logicos, algoritmos. | Medio (~4 tok/s) |
-| 4 | **Phi-4 Mini** | Alternativa al Qwen 3B. Fuerte en matematicas y razonamiento. | Rapido (~9 tok/s) |
-| 5 | **Gemma 3** | Preguntas generales, resumenes, traducciones. Menos preciso en codigo. | Rapido (~8 tok/s) |
+| Opcion | Modelo | Contexto max | Situacion | Velocidad (i7 CPU) |
+|--------|--------|-------------|-----------|-------------------|
+| 1 | **Qwen 3B** | 32K tokens | Escribir codigo C++: clases, STL, punteros, ficheros, templates. Tu dia a dia. | Rapido (~10 tok/s) |
+| 2 | **Qwen 7B** | 32K tokens | Codigo C++ complejo y preciso. Cuando el 3B se queda corto. Necesita RAM. | Medio (~4 tok/s) |
+| 3 | **DeepSeek R1** | 64K tokens | Cuando algo no compila y no sabes por que. Segfaults, bugs logicos, algoritmos. | Medio (~4 tok/s) |
+| 4 | **Phi-4 Mini** | 16K tokens | Alternativa al Qwen 3B. Fuerte en matematicas y razonamiento. | Rapido (~9 tok/s) |
+| 5 | **Gemma 3** | 32K tokens | Preguntas generales, resumenes, traducciones. Menos preciso en codigo. | Rapido (~8 tok/s) |
+
+El contexto esta limitado a 4096 tokens en el script para ahorrar RAM. Los valores de la tabla son los maximos que soporta cada modelo. Si tienes RAM de sobra, puedes aumentarlo editando `-c 4096` en el script.
+
+### Como escribir preguntas
+
+- **Todo en una linea.** Cada vez que pulsas Enter, la pregunta se envia inmediatamente. No hay forma de escribir varias lineas; cada Enter = enviar.
+- **Se directo.** En vez de "puedes ayudarme con un programa", escribe: "funcion en C++ que ordene un vector de enteros con quicksort".
+- **Pega codigo en una sola linea.** Si necesitas que analice tu codigo, copia y pega todo seguido. La IA lo entiende aunque pierda el formato. Ejemplo: `#include <iostream> using namespace std; int main() { cout << "hola"; return 0; }`
+- **Pide correcciones especificas.** En vez de "arreglalo", di: "este codigo da segfault, la variable p no esta inicializada, como lo corrijo".
+- **Evita acentos y caracteres raros** si puedes. Algunos modelos se confunden con caracteres especiales en CMD.
+
+### Ejemplos de uso
+
+```
+C:\Users\Admin> funcion en C++ que lea un fichero linea a linea y cuente palabras
+C:\Users\Admin> implementa una clase Pila con push pop y top usando templates
+C:\Users\Admin> este codigo da error de compilacion: int x = "hola"; por que?
+C:\Users\Admin> como hago un makefile para compilar main.cpp y utils.cpp
+C:\Users\Admin> ordena este vector con mergesort: {5, 3, 8, 1, 9, 2}
+```
 
 ### Controles dentro de la sesion
 
