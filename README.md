@@ -178,15 +178,38 @@ Cualquiera que mire tu pantalla vera lo que parece una consola de Windows normal
 | `shhh e 4` | Phi-4 Mini |
 | `shhh e 5` | Gemma 3 4B |
 
-**PowerShell (aspecto PS):**
+**PowerShell — modo codigo (aspecto PS):**
 | Comando | Modelo |
 |---------|--------|
-| `shhhps` | Qwen 3B (codigo) |
-| `shhhps 2` | Qwen 7B (codigo) |
-| `shhhps e` | Qwen 3B (explicacion) |
-| `shhhps e 2` | Qwen 7B (explicacion) |
+| `shhhps` | Qwen 3B (defecto) |
+| `shhhps 1` | Qwen 3B |
+| `shhhps 2` | Qwen 7B |
+| `shhhps 3` | DeepSeek R1 7B |
+| `shhhps 4` | Phi-4 Mini |
+| `shhhps 5` | Gemma 3 4B |
+
+**PowerShell — modo explicacion (aspecto PS):**
+| Comando | Modelo |
+|---------|--------|
+| `shhhps e` | Qwen 3B (defecto) |
+| `shhhps e 1` | Qwen 3B |
+| `shhhps e 2` | Qwen 7B |
+| `shhhps e 3` | DeepSeek R1 7B |
+| `shhhps e 4` | Phi-4 Mini |
+| `shhhps e 5` | Gemma 3 4B |
 
 Tambien puedes usar el comando largo equivalente: `powershell -ExecutionPolicy Bypass -File .\shhh.ps1 2`
+
+### Diferencia entre shhh y shhhps
+
+| | `shhh` | `shhhps` |
+|---|--------|----------|
+| Apariencia | Simbolo del sistema (CMD) | PowerShell |
+| Texto inicial | `Microsoft Windows [Version 10.0...]` | `Windows PowerShell Copyright (C)...` |
+| Prompt | `C:\Users\Admin> ` | `PS C:\Users\Admin> ` |
+| Funciona desde | CMD y PowerShell | Solo PowerShell |
+
+Usa `shhh` si la terminal del PC es CMD (lo mas comun en PCs de universidad). Usa `shhhps` si la terminal es PowerShell (ventana azul). Elige el que coincida con lo que ya tiene abierto el PC para que no se note nada raro.
 
 ### Cuando usar cada modelo
 
