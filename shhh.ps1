@@ -36,7 +36,7 @@ $REASONING = "--reasoning-budget", "0"
 if ($MODO -eq "explain") {
     $SP = "Responde en maximo 3 lineas. Breve y tecnico. Explica cada parte clave del codigo. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
 } elseif ($MODO -eq "think") {
-    $SP = "Razona paso a paso antes de responder. Muestra tu razonamiento completo. Luego da la respuesta final. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+    $SP = "Muestra tu razonamiento paso a paso y luego devuelve UNICAMENTE el codigo final. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten."
     $REASONING = @()
 } elseif ($ARG_MODELO -eq "6") {
     $SP = "Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."

@@ -41,7 +41,7 @@ set "REASONING=--reasoning-budget 0"
 if "%MODO%"=="explain" (
     set "SP=Responde en maximo 3 lineas. Breve y tecnico. Explica cada parte clave del codigo. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
 ) else if "%MODO%"=="think" (
-    set "SP=Razona paso a paso antes de responder. Muestra tu razonamiento completo. Luego da la respuesta final. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+    set "SP=Muestra tu razonamiento paso a paso y luego devuelve UNICAMENTE el codigo final. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten."
     set "REASONING="
 ) else if "%ARG_MODELO%"=="6" (
     set "SP=Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."
