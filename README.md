@@ -145,6 +145,16 @@ cd "System Volume Information"
 shhh
 ```
 
+**IMPORTANTE:** Al ejecutar, la pantalla quedara en negro durante unos segundos mientras el modelo carga. Es normal. A los ~60 segundos la pantalla se limpia automaticamente y aparece el prompt listo para escribir. No toques nada durante la carga.
+
+### Modos disponibles
+
+| Modo | Letra | Ejemplo | Que hace |
+|------|-------|---------|----------|
+| Codigo | *(ninguna)* | `shhh` / `shhh 5` | Devuelve solo codigo, sin explicaciones |
+| Explicar | `e` | `shhh e` / `shhh e 5` | Explicacion breve (3 lineas max) |
+| Pensar | `t` | `shhh t` / `shhh t 5` | Muestra el razonamiento completo del modelo |
+
 **CMD — modo codigo:**
 | Comando | Modelo |
 |---------|--------|
@@ -210,13 +220,17 @@ El objetivo es que la ventana parezca lo que YA esta abierto en el PC para no le
 
 3. **DLLs del motor**: El ZIP trae DLLs como `ggml-cpu-*.dll` y `llama.dll`. No se pueden renombrar porque el motor las busca por nombre exacto. En la practica solo alguien que conozca llama.cpp las reconoceria, y para eso tendria que desactivar la proteccion de archivos de sistema y leer nombres de DLLs dentro de una carpeta oculta de sistema. Improbable.
 
-4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt son identicos a una terminal real de Windows.
+4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt (`D:\ruta>`) son identicos a una terminal real de Windows. El prompt se genera dinamicamente usando `%CD%`.
 
-5. **Silencio absoluto**: Toda la salida tecnica del motor (carga de modelo, memoria, tensores, tiempos) se redirige a la nada (`2>nul`). Los logs internos estan desactivados (`--log-disable`). La pantalla permanece completamente limpia.
+5. **Banner invisible**: El motor muestra un banner al cargar (ASCII art, info del build). Para ocultarlo, el script pone el color del texto en negro (invisible sobre fondo negro) ANTES de ejecutar el motor. Un proceso en segundo plano restaura la visibilidad a los 60 segundos, limpia la pantalla y reimprime el header falso de Windows.
 
-6. **Rutas dinamicas**: Los scripts detectan automaticamente la ruta del USB. Funciona sin importar que letra asigne Windows.
+6. **Razonamiento oculto**: En modo codigo, el modelo usa `--reasoning-budget 0` para activar su ruta de razonamiento sin generar texto de pensamiento visible. En modo think (`t`), el razonamiento se muestra completo.
 
-7. **Historial borrado**: Al cerrar, el historial de comandos de CMD y PowerShell se borra automaticamente.
+7. **Silencio absoluto**: Toda la salida tecnica del motor (carga de modelo, memoria, tensores, tiempos) se redirige a la nada (`2>nul`). Los logs internos estan desactivados (`--log-disable`). Los colores del motor estan desactivados (`--color off`). Los tiempos de respuesta estan ocultos (`--no-show-timings`).
+
+8. **Rutas dinamicas**: Los scripts detectan automaticamente la ruta del USB. Funciona sin importar que letra asigne Windows.
+
+9. **Historial borrado**: Al cerrar, el historial de comandos de CMD y PowerShell se borra automaticamente.
 
 ---
 
@@ -227,7 +241,10 @@ El objetivo es que la ventana parezca lo que YA esta abierto en el PC para no le
 | `hostcfg.exe not found` | Renombraste `llama-cli.exe` a `hostcfg.exe`? |
 | `syscache_0X.dat not found` | Renombraste el modelo a `syscache_0X.dat`? |
 | Se cierra sin mostrar nada | Usa la version **CPU** del motor en vez de Vulkan |
+| Pantalla negra mucho rato | Normal, el modelo esta cargando. Espera hasta 60 seg |
 | Se congela o va muy lento | El PC no tiene RAM suficiente, prueba un modelo mas ligero (0, 1 o 2) |
+| Sale texto de pensamiento | Asegurate de NO usar modo `t`. El modo normal ya lo oculta |
+| Prompt en verde | Asegurate de que el script tiene `--color off` |
 | Texto raro o basura | Prueba otro modelo, no todos son compatibles con todas las versiones del motor |
 
 ---
