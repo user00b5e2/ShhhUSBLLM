@@ -8,22 +8,21 @@ Terminal de IA portable desde USB en Windows. Se camufla como CMD o PowerShell. 
 
 | Caracteristica | Minimo | Recomendado |
 |---------------|--------|-------------|
-| Capacidad | 32 GB | 64-128 GB |
-| Velocidad | USB 3.0 (100+ MB/s) | USB 3.1/3.2 (200+ MB/s) |
 | Formato | exFAT | exFAT |
+| Capacidad | 32 GB | 64 GB |
+| Velocidad | USB 2.0 | USB 3.0+ |
 
-Espacio aproximado:
+**Espacio necesario segun los modelos que descargues:**
 
-| Contenido | Espacio |
-|-----------|---------|
-| Motor + DLLs | ~500 MB |
-| Todo tier 4 GB (4 modelos) | ~8.4 GB |
-| Todo tier 8 GB (3 modelos) | ~15.5 GB |
-| Modelo 14B (tier 12 GB) | ~8.7 GB |
-| **Todos los modelos** | **~25 GB** |
-| Apuntes, PDFs, proyectos | Variable |
-
-Con un USB de 64 GB caben todos los modelos + ~35 GB para tus archivos.
+| Tier | Modelos | Espacio total (motor + modelos) |
+|------|---------|----------------------------------|
+| Solo 4 GB RAM | Motor + Qwen 1.5B | ~2 GB |
+| Solo 6 GB RAM | Motor + un modelo de 3-4B | ~3-4 GB |
+| Solo 8 GB RAM | Motor + Qwen3.5-4B | ~4 GB |
+| Solo 10 GB RAM | Motor + Qwen2.5-Coder 7B | ~6 GB |
+| Solo 12 GB RAM | Motor + Qwen3.5-9B | ~7 GB |
+| Solo 16 GB RAM | Motor + Qwen2.5-Coder 14B | ~10 GB |
+| TODOS los modelos | Motor + los 9 modelos | ~37 GB |
 
 ---
 
@@ -49,23 +48,37 @@ chflags hidden "/Volumes/TuUSB/System Volume Information"
 - El nombre `System Volume Information` hace que Windows la trate como carpeta de sistema propia, ocultandola automaticamente.
 - En Linux, los gestores de archivos (Nautilus, Dolphin, Thunar) reconocen este nombre y la ocultan.
 
-**Recomendado:** la primera vez que conectes el USB a Windows, abre CMD y ejecuta esto para blindar los atributos:
+**Recomendado:** la primera vez que conectes el USB a Windows, abre CMD y ejecuta:
 ```cmd
 D:
 attrib +h +s +r "System Volume Information"
 ```
-Esto annade los atributos de sistema + oculto + solo lectura. A partir de ahi, la carpeta es invisible en el Explorador de archivos incluso con "Mostrar archivos ocultos" activado (porque tiene el atributo sistema ademas del oculto).
+Esto annade los atributos de sistema + oculto + solo lectura. La carpeta sera invisible incluso con "Mostrar archivos ocultos" activado (porque tiene el atributo sistema ademas del oculto).
 
 Al conectar el USB a Windows, el SO NO borra el contenido de la carpeta. Puede que anada algun archivo pequeno suyo (como `IndexerVolumeGuid`), lo cual es perfecto: hace que los archivos parezcan aun mas legitimos.
 
-Para acceder a ella:
+Es perfecta porque:
+- Windows la oculta automaticamente en el Explorador de archivos.
+- Tiene atributos de sistema, oculto y solo lectura.
+- Ningun usuario normal la abre.
+- Si alguien la ve, asumira que es del propio sistema operativo.
+
+Para acceder a ella desde CMD:
 ```cmd
+D:
 cd "System Volume Information"
 ```
 
 ### 3. Descargar el motor
 
-[Descargar llama.cpp Windows Vulkan x64](https://github.com/ggml-org/llama.cpp/releases/download/b8394/llama-b8394-bin-win-vulkan-x64.zip) → Extraer TODO dentro de `System Volume Information`.
+Hay dos versiones. Usa la que corresponda al PC:
+
+| Version | Velocidad | Compatibilidad | Descarga |
+|---------|-----------|----------------|----------|
+| **CPU** (recomendada) | Normal | Funciona en TODOS los PCs | [Descargar](https://github.com/ggml-org/llama.cpp/releases/download/b8429/llama-b8429-bin-win-x64.zip) |
+| Vulkan (GPU) | Mas rapida | Solo PCs con GPU Vulkan | [Descargar](https://github.com/ggml-org/llama.cpp/releases/download/b8429/llama-b8429-bin-win-vulkan-x64.zip) |
+
+Si la version Vulkan se cierra sin mostrar nada, usa la CPU. Extrae TODO el contenido del ZIP dentro de `System Volume Information`.
 
 ### 4. Disfrazar el ejecutable
 
@@ -75,187 +88,153 @@ ren llama-cli.exe hostcfg.exe
 
 ### 5. Descargar y disfrazar los modelos
 
-Descarga, mueve a la carpeta y renombra. No necesitas descargarlos todos, solo los que vayas a usar segun la RAM del PC.
+Descarga, mueve a la carpeta y renombra. Solo necesitas los que vayas a usar segun la RAM del PC.
 
 **PCs con 4 GB de RAM:**
 
-| Opcion | Modelo | Renombrar a | Peso | Descarga |
-|--------|--------|-------------|------|----------|
-| 0 | Qwen2.5-Coder 1.5B | `syscache_00.dat` | 1.1 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf?download=true) |
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh 0` | Qwen2.5-Coder 1.5B | ~45% HumanEval | `syscache_00.dat` | 1.1 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf?download=true) |
 
-**PCs con 6-8 GB de RAM:**
+**PCs con 6 GB de RAM:**
 
-| Opcion | Modelo | Renombrar a | Peso | Descarga |
-|--------|--------|-------------|------|----------|
-| 1 | Qwen2.5-Coder 3B | `syscache_01.dat` | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
-| 2 | Phi-4 Mini 3.8B | `syscache_02.dat` | 2.5 GB | [Descargar](https://huggingface.co/bartowski/microsoft_Phi-4-mini-instruct-GGUF/resolve/main/microsoft_Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
-| 3 | Gemma 3 4B | `syscache_03.dat` | 2.8 GB | [Descargar](https://huggingface.co/bartowski/google_gemma-3-4b-it-GGUF/resolve/main/google_gemma-3-4b-it-Q4_K_M.gguf?download=true) |
-| 4 | **Qwen3.5-4B** ★ | `syscache_04.dat` | 3.1 GB | [Descargar](https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf?download=true) |
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh 1` | Qwen2.5-Coder 3B | ~67% HumanEval | `syscache_01.dat` | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
+| `shhh 2` | Phi-4 Mini 3.8B | ~72% HumanEval | `syscache_02.dat` | 2.5 GB | [Descargar](https://huggingface.co/microsoft/Phi-4-mini-instruct-gguf/resolve/main/Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
+| `shhh 3` | Gemma 3 4B | ~70% HumanEval | `syscache_03.dat` | 3.0 GB | [Descargar](https://huggingface.co/google/gemma-3-4b-it-qat-q4_0-gguf/resolve/main/gemma-3-4b-it-q4_0.gguf?download=true) |
 
-**PCs con 10-12 GB de RAM:**
+**PCs con 8 GB de RAM:**
 
-| Opcion | Modelo | Renombrar a | Peso | Descarga |
-|--------|--------|-------------|------|----------|
-| 5 | **Qwen2.5-Coder 7B** ★ | `syscache_05.dat` | 4.3 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf?download=true) |
-| 6 | DeepSeek-R1 7B | `syscache_06.dat` | 4.7 GB | [Descargar](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true) |
-| 7 | **Qwen3.5-9B** ★ | `syscache_07.dat` | 6.5 GB | [Descargar](https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf?download=true) |
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh` / `shhh 4` | Qwen3.5-4B (RECOMENDADO) | ~78% HumanEval | `syscache_04.dat` | 2.9 GB | [Descargar](https://huggingface.co/Qwen/Qwen3.5-4B-Instruct-GGUF/resolve/main/qwen3.5-4b-instruct-q4_k_m.gguf?download=true) |
+
+**PCs con 10 GB de RAM:**
+
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh 5` | Qwen2.5-Coder 7B (RECOMENDADO) | ~84% HumanEval | `syscache_05.dat` | 4.7 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf?download=true) |
+| `shhh 6` | DeepSeek R1 7B | ~75% HumanEval | `syscache_06.dat` | 4.9 GB | [Descargar](https://huggingface.co/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf?download=true) |
+
+**PCs con 12 GB de RAM:**
+
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh 7` | Qwen3.5-9B (RECOMENDADO) | ~86% HumanEval | `syscache_07.dat` | 5.9 GB | [Descargar](https://huggingface.co/Qwen/Qwen3.5-9B-Instruct-GGUF/resolve/main/qwen3.5-9b-instruct-q4_k_m.gguf?download=true) |
 
 **PCs con 16 GB de RAM:**
 
-| Opcion | Modelo | Renombrar a | Peso | Descarga |
-|--------|--------|-------------|------|----------|
-| 8 | **Qwen2.5-Coder 14B** ★★ | `syscache_08.dat` | 8.7 GB | [Descargar](https://huggingface.co/bartowski/Qwen2.5-Coder-14B-Instruct-GGUF/resolve/main/Qwen2.5-Coder-14B-Instruct-Q4_K_M.gguf?download=true) |
-
-★ = recomendado en su categoria. ★★ = lo mejor que existe en local.
-
-Ejemplo de renombrado:
-```cmd
-ren qwen2.5-coder-1.5b-instruct-q4_k_m.gguf syscache_00.dat
-```
+| Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
+|---------|--------|-----------|-------------|------|----------|
+| `shhh 8` | Qwen2.5-Coder 14B (EL MEJOR) | ~92% HumanEval | `syscache_08.dat` | 9.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-14B-Instruct-GGUF/resolve/main/qwen2.5-coder-14b-instruct-q4_k_m.gguf?download=true) |
 
 ### 6. Copiar los scripts
 
-Copia `shhh.bat`, `shhh.ps1` y `shhhps.bat` dentro de la carpeta.
-
-### Estructura final
-
-```
-(USB) D:\
- └── System Volume Information/    <- Invisible por defecto
-      ├── hostcfg.exe              <- Motor disfrazado
-      ├── (DLLs del ZIP)
-      ├── syscache_00.dat          <- Qwen 1.5B
-      ├── syscache_04.dat          <- Qwen3.5-4B (defecto)
-      ├── syscache_05.dat          <- Qwen2.5-Coder 7B
-      ├── (otros syscache_XX.dat)
-      ├── shhh.bat
-      ├── shhh.ps1
-      └── shhhps.bat
-```
+Copia `shhh.bat`, `shhh.ps1` y `shhhps.bat` dentro de `System Volume Information` junto al motor y los modelos.
 
 ---
 
-## Como usarlo
+## Uso
 
-```
+Abre CMD o PowerShell, navega a la carpeta y ejecuta:
+
+```cmd
 D:
 cd "System Volume Information"
 shhh
 ```
-(Sustituye `D:` por la letra de tu USB.)
 
-Para aspecto PowerShell: `shhhps`
+**CMD — modo codigo:**
+| Comando | Modelo |
+|---------|--------|
+| `shhh` | Qwen3.5-4B (defecto) |
+| `shhh 0` | Qwen2.5-Coder 1.5B |
+| `shhh 1` | Qwen2.5-Coder 3B |
+| `shhh 2` | Phi-4 Mini |
+| `shhh 3` | Gemma 3 4B |
+| `shhh 4` | Qwen3.5-4B |
+| `shhh 5` | Qwen2.5-Coder 7B |
+| `shhh 6` | DeepSeek R1 7B |
+| `shhh 7` | Qwen3.5-9B |
+| `shhh 8` | Qwen2.5-Coder 14B |
 
----
+**CMD — modo explicacion:**
+| Comando | Modelo |
+|---------|--------|
+| `shhh e` | Qwen3.5-4B (defecto) |
+| `shhh e 0` a `shhh e 8` | Igual que arriba |
 
-## Comandos
+**CMD — modo razonamiento (muestra el pensamiento del modelo):**
+| Comando | Modelo |
+|---------|--------|
+| `shhh t` | Qwen3.5-4B (defecto) |
+| `shhh t 0` a `shhh t 8` | Igual que arriba |
 
-### shhh (CMD) / shhhps (PowerShell)
+**PowerShell — modo codigo (aspecto PS):**
+| Comando | Modelo |
+|---------|--------|
+| `shhhps` | Qwen3.5-4B (defecto) |
+| `shhhps 0` a `shhhps 8` | Igual que arriba |
 
-| Comando | Modelo | RAM del PC | HumanEval | Velocidad |
-|---------|--------|-----------|-----------|-----------|
-| `shhh 0` | Qwen2.5-Coder 1.5B | 4 GB | ~50% | Muy rapido |
-| `shhh 1` | Qwen2.5-Coder 3B | 6 GB | ~67% | Rapido |
-| `shhh 2` | Phi-4 Mini 3.8B | 6 GB | ~72% | Rapido |
-| `shhh 3` | Gemma 3 4B | 6 GB | ~65% | Rapido |
-| `shhh` o `shhh 4` | **Qwen3.5-4B** ★ | 8 GB | ~78% | Rapido |
-| `shhh 5` | **Qwen2.5-Coder 7B** ★ | 10 GB | ~88% | Medio |
-| `shhh 6` | DeepSeek R1 7B | 10 GB | ~78% | Medio |
-| `shhh 7` | **Qwen3.5-9B** ★ | 12 GB | ~83% | Medio |
-| `shhh 8` | **Qwen2.5-Coder 14B** ★★ | 16 GB | ~92% | Lento |
+**PowerShell — modo explicacion:**
+| Comando | Modelo |
+|---------|--------|
+| `shhhps e` | Qwen3.5-4B (defecto) |
+| `shhhps e 0` a `shhhps e 8` | Igual que arriba |
 
-La columna "RAM del PC" es la RAM TOTAL que necesita el PC (sistema + modelo). Windows con un par de apps abiertas consume ~3 GB.
+**PowerShell — modo razonamiento:**
+| Comando | Modelo |
+|---------|--------|
+| `shhhps t` | Qwen3.5-4B (defecto) |
+| `shhhps t 0` a `shhhps t 8` | Igual que arriba |
 
-**Modo explicacion:** Antepon `e`. Ejemplo: `shhh e 5` = Qwen 7B con explicaciones breves.
-
-Para PowerShell, sustituye `shhh` por `shhhps`. Ejemplo: `shhhps 5`, `shhhps e 5`.
-
-### Diferencia shhh vs shhhps
+### Cuando usar shhh vs shhhps
 
 | | `shhh` | `shhhps` |
-|--|--------|----------|
-| Apariencia | CMD (fondo negro) | PowerShell (fondo azul) |
-| Funciona desde | CMD y PowerShell | Solo PowerShell |
+|---|--------|----------|
+| Aspecto | CMD (Simbolo del sistema) | PowerShell |
+| Texto inicial | `Microsoft Windows [Version 10.0...]` | `Windows PowerShell Copyright (C)...` |
+| Prompt | `C:\>` | `PS C:\>` |
+| Cuando usarlo | Si el PC tiene CMD abierto | Si el PC tiene PowerShell abierto |
 
-Usa el que coincida con la terminal que ya tiene abierta el PC.
-
----
-
-## Que modelo usar
-
-### PC con 4 GB RAM → `shhh 0`
-Qwen2.5-Coder 1.5B. Es limitado pero funciona. Genera snippets cortos de C/C++, Python. Se equivoca mas que los grandes pero es tu unica opcion con tan poca RAM.
-
-### PC con 6-8 GB RAM → `shhh` (defecto = Qwen3.5-4B)
-El mejor equilibrio calidad/velocidad. Marzo 2026, ultima generacion. Supera a modelos de 7B de 2024. Escribe C++ correcto la mayor parte del tiempo.
-
-### PC con 10-12 GB RAM → `shhh 5` (Qwen2.5-Coder 7B)
-El mejor modelo de codigo en 7B que existe. 88% en HumanEval, casi GPT-4o. Si el PC aguanta, este es el que quieres para codigo puro.
-
-### PC con 16 GB RAM → `shhh 8` (Qwen2.5-Coder 14B)
-92% en HumanEval. Nivel GPT-4o. Lo mejor que puedes correr en local. C++ casi perfecto.
-
-### Para depurar → `shhh 6` (DeepSeek R1 7B)
-No para escribir codigo, sino para entender POR QUE falla. Segfaults, errores logicos, algoritmos.
-
----
-
-## Como escribir preguntas
-
-- **Todo en una linea.** Cada Enter envia inmediatamente.
-- **Se directo.** "funcion C++ que ordene vector con quicksort"
-- **Pega codigo en una sola linea.** La IA lo entiende.
-- **Evita acentos** si puedes.
-
-### Controles
-
-| Accion | Que hace |
-|--------|----------|
-| `Enter` | Enviar pregunta |
-| Seleccionar + clic derecho | Copiar (CMD) |
-| Clic derecho | Pegar (CMD) |
-| `Ctrl + Shift + C/V` | Copiar/Pegar (Windows Terminal) |
-| Flecha arriba | Ultima pregunta |
-| Cerrar ventana (X) | Salir (borra historial) |
+El objetivo es que la ventana parezca lo que YA esta abierto en el PC para no levantar sospechas.
 
 ---
 
 ## Capas de sigilo
 
-1. **Carpeta de sistema**: Los archivos viven dentro de `System Volume Information`, una carpeta que Windows crea automaticamente en cada unidad y que es invisible por defecto. Nadie la abre jamas. Si alguien la ve, asumira que es del propio Windows.
+1. **Carpeta de sistema**: Los archivos viven dentro de `System Volume Information`, invisible por defecto. Si alguien la ve, asumira que es de Windows.
 
-2. **Archivos disfrazados**: El motor se llama `hostcfg.exe` (parece un servicio de red). Los modelos se llaman `syscache_0X.dat` (parecen caches del sistema).
+2. **Archivos disfrazados**: El motor se llama `hostcfg.exe` (parece servicio de red). Los modelos se llaman `syscache_0X.dat` (parecen caches del sistema).
 
-3. **Limitacion conocida: `llama.dll`**: El ZIP del motor trae DLLs como `ggml-vulkan.dll`, `ggml-cpu-*.dll` y `llama.dll`. No se pueden renombrar porque el motor las busca por nombre exacto. En la practica, `ggml` no significa nada para nadie, y `llama.dll` es un nombre generico que podria ser cualquier libreria. Solo alguien que conozca el proyecto llama.cpp lo reconoceria, y para llegar hasta ahi tendria que: (1) saber que la carpeta existe, (2) desactivar la proteccion de archivos de sistema, (3) entrar y leer nombres de DLLs. Improbable.
+3. **DLLs del motor**: El ZIP trae DLLs como `ggml-cpu-*.dll` y `llama.dll`. No se pueden renombrar porque el motor las busca por nombre exacto. En la practica solo alguien que conozca llama.cpp las reconoceria, y para eso tendria que desactivar la proteccion de archivos de sistema y leer nombres de DLLs dentro de una carpeta oculta de sistema. Improbable.
 
-4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt son identicos a una terminal real de Windows. No hay prefijos de "Usuario" ni "Asistente".
+4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt son identicos a una terminal real de Windows.
 
-5. **Silencio absoluto**: Toda la salida tecnica del motor (carga, memoria, tiempos) se redirige a la nada. Los logs estan desactivados. La pantalla permanece limpia.
+5. **Silencio absoluto**: Toda la salida tecnica del motor (carga de modelo, memoria, tensores, tiempos) se redirige a la nada (`2>nul`). Los logs internos estan desactivados (`--log-disable`). La pantalla permanece completamente limpia.
 
 6. **Rutas dinamicas**: Los scripts detectan automaticamente la ruta del USB. Funciona sin importar que letra asigne Windows.
 
-7. **Historial borrado**: Al cerrar, el historial de comandos de CMD y PowerShell se borra automaticamente. Nadie puede pulsar flecha arriba para ver que ejecutaste.
+7. **Historial borrado**: Al cerrar, el historial de comandos de CMD y PowerShell se borra automaticamente.
 
 ---
 
 ## Solucion de problemas
 
-| Error | Solucion |
-|-------|----------|
-| `Core executable missing` | Renombraste `llama-cli.exe` a `hostcfg.exe`? |
-| `Modulo no encontrado` | Renombraste el modelo a `syscache_0X.dat`? |
-| Se cierra sin mostrar nada | Prueba un modelo mas ligero (0, 1 o 2) |
-| Se congela o va muy lento | El PC no tiene RAM suficiente para ese modelo |
+| Problema | Solucion |
+|----------|----------|
+| `hostcfg.exe not found` | Renombraste `llama-cli.exe` a `hostcfg.exe`? |
+| `syscache_0X.dat not found` | Renombraste el modelo a `syscache_0X.dat`? |
+| Se cierra sin mostrar nada | Usa la version **CPU** del motor en vez de Vulkan |
+| Se congela o va muy lento | El PC no tiene RAM suficiente, prueba un modelo mas ligero (0, 1 o 2) |
+| Texto raro o basura | Prueba otro modelo, no todos son compatibles con todas las versiones del motor |
 
 ---
 
 ## Discrecion
 
-- No instala nada. No necesita admin. No necesita internet.
-- No deja rastro en disco duro ni en historial.
-- Los archivos viven en una carpeta que Windows nunca muestra.
-- Si te preguntan: "Estoy comprobando la integridad del disco."
-
----
-
-*Proyecto de proposito educativo.*
+- No dejes la ventana abierta cuando no la uses.
+- Desde la terminal integrada de VSCode es todavia mas discreto: parece que estas compilando.
+- Usa el modelo mas ligero que te sirva para que responda rapido.
+- Si alguien se acerca, pulsa Ctrl+C para parar la respuesta y escribe `exit` para cerrar.

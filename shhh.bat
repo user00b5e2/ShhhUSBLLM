@@ -3,10 +3,13 @@ title C:\WINDOWS\system32\cmd.exe
 cls
 color 07
 
+:: Generar caracter ESC para codigos ANSI
+for /f %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
+
 :: RUTAS DINAMICAS
 set SCRIPT_DIR=%~dp0
 
-:: MODO
+:: MODO: code (defecto), explain (e), think (t)
 set MODO=code
 set ARG_MODELO=%1
 
@@ -14,14 +17,12 @@ if /i "%1"=="e" (
     set MODO=explain
     set ARG_MODELO=%2
 )
+if /i "%1"=="t" (
+    set MODO=think
+    set ARG_MODELO=%2
+)
 
-:: MODELOS (disfrazados)
-:: 4GB PC: 0=Qwen2.5-Coder-1.5B
-:: 6GB PC: 1=Qwen2.5-Coder-3B, 2=Phi4-Mini, 3=Gemma3-4B
-:: 8GB PC: 4=Qwen3.5-4B (DEFECTO)
-:: 10GB PC: 5=Qwen2.5-Coder-7B, 6=DeepSeek-R1-7B
-:: 12GB PC: 7=Qwen3.5-9B
-:: 16GB PC: 8=Qwen2.5-Coder-14B
+:: MODELOS
 set MODELO=syscache_04.dat
 
 if "%ARG_MODELO%"=="0" set MODELO=syscache_00.dat
@@ -34,35 +35,47 @@ if "%ARG_MODELO%"=="6" set MODELO=syscache_06.dat
 if "%ARG_MODELO%"=="7" set MODELO=syscache_07.dat
 if "%ARG_MODELO%"=="8" set MODELO=syscache_08.dat
 
-:: CAMUFLAJE
+:: SYSTEM PROMPT + REASONING
+set "REASONING=--reasoning-budget 0"
+
+if "%MODO%"=="explain" (
+    set "SP=Responde en maximo 3 lineas. Breve y tecnico. Explica cada parte clave del codigo. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+) else if "%MODO%"=="think" (
+    set "SP=Razona paso a paso antes de responder. Muestra tu razonamiento completo. Luego da la respuesta final. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+    set "REASONING="
+) else if "%ARG_MODELO%"=="6" (
+    set "SP=Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."
+) else (
+    set "SP=Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."
+)
+
+:: CAMUFLAJE VISUAL (se imprime en color normal)
 echo Microsoft Windows [Version 10.0.19045.4291]
 echo (c) Microsoft Corporation. Todos los derechos reservados.
 echo.
 
-:: SYSTEM PROMPT
-if "%MODO%"=="explain" (
-    echo Responde en maximo 3 lineas. Se extremadamente breve y tecnico. Si te pasan codigo, explica que hace cada parte clave. Si te hacen una pregunta teorica, responde directo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano solamente. Nada de introducciones ni despedidas. Ve directo al grano. Responde en el idioma en que te pregunten.> "%SCRIPT_DIR%_sp.tmp"
-) else if "%ARG_MODELO%"=="6" (
-    echo Devuelve UNICAMENTE codigo fuente. NADA de explicaciones, NADA de texto antes o despues del codigo. NUNCA escribas frases como aqui tienes. SOLO codigo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano. PROHIBIDO usar etiquetas think. NUNCA escribas think entre angulos. NO muestres tu razonamiento. Responde en el idioma en que te pregunten. Si NO es sobre codigo, responde en una sola linea.> "%SCRIPT_DIR%_sp.tmp"
-) else (
-    echo Devuelve UNICAMENTE codigo fuente. NADA de explicaciones, NADA de texto antes o despues del codigo. NUNCA escribas frases como aqui tienes. SOLO codigo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano. Responde en el idioma en que te pregunten. Si NO es sobre codigo, responde en una sola linea.> "%SCRIPT_DIR%_sp.tmp"
-)
-
 :: COMPROBACIONES
 if not exist "%SCRIPT_DIR%hostcfg.exe" (
-    echo [ERROR] Fast-boot failed. Core executable missing.
-    del "%SCRIPT_DIR%_sp.tmp" 2>nul
+    echo [!] hostcfg.exe not found.
     exit /b
 )
 if not exist "%SCRIPT_DIR%%MODELO%" (
-    echo [ERROR] Modulo %MODELO% no encontrado.
-    del "%SCRIPT_DIR%_sp.tmp" 2>nul
+    echo [!] %MODELO% not found.
     exit /b
 )
 
-:: EJECUCION (stderr al agujero negro)
-"%SCRIPT_DIR%hostcfg.exe" -m "%SCRIPT_DIR%%MODELO%" -n -1 -c 4096 -t 4 --conversation --system-prompt-file "%SCRIPT_DIR%_sp.tmp" --log-disable 2>nul
+:: === TRUCO DE INVISIBILIDAD ===
+:: Poner texto FUTURO en negro (invisible sobre fondo negro)
+:: El header de Microsoft YA impreso sigue visible
+<nul set /p "=%ESC%[30m"
 
-:: LIMPIEZA
-del "%SCRIPT_DIR%_sp.tmp" 2>nul
+:: Proceso en segundo plano: espera y luego restaura la visibilidad
+:: color 07 resetea TODA la consola a blanco, cls limpia, echo reimprime header
+start /b cmd /c "ping -n 62 127.0.0.1 >nul & color 07 & cls & echo Microsoft Windows [Version 10.0.19045.4291] & echo (c) Microsoft Corporation. Todos los derechos reservados. & echo."
+
+:: EJECUCION DIRECTA EN TERMINAL (banner en negro = invisible)
+"%SCRIPT_DIR%hostcfg.exe" -m "%SCRIPT_DIR%%MODELO%" -c 2048 -t 8 -cnv --simple-io --color off -r "%CD%> " -sys "%SP%" %REASONING% --no-show-timings --log-disable 2>nul
+
+:: RESTAURAR COLOR al salir
+<nul set /p "=%ESC%[0m"
 doskey /reinstall

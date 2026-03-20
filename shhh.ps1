@@ -1,9 +1,6 @@
-# PowerShell Stealth Launcher
+# PowerShell Stealth Launcher (la invisibilidad la maneja shhhps.bat)
 
-$host.UI.RawUI.WindowTitle = "Windows PowerShell"
-Clear-Host
-
-# MODO
+# MODO: code (defecto), explain (e), think (t)
 $MODO = "code"
 $ARG_MODELO = $args[0]
 
@@ -11,8 +8,12 @@ if ($args[0] -eq "e") {
     $MODO = "explain"
     $ARG_MODELO = $args[1]
 }
+if ($args[0] -eq "t") {
+    $MODO = "think"
+    $ARG_MODELO = $args[1]
+}
 
-# MODELOS (disfrazados)
+# MODELOS
 $MODELO = "syscache_04.dat"
 
 switch ($ARG_MODELO) {
@@ -27,47 +28,43 @@ switch ($ARG_MODELO) {
     "8" { $MODELO = "syscache_08.dat" }
 }
 
-# RUTAS
 $SCRIPT_DIR = $PSScriptRoot
 
-# CAMUFLAJE
-Write-Host "Windows PowerShell" -ForegroundColor White
-Write-Host "Copyright (C) Microsoft Corporation. All rights reserved." -ForegroundColor White
-Write-Host ""
-Write-Host "Install the latest PowerShell for new features and improvements! https://aka.ms/PSWindows" -ForegroundColor White
-Write-Host ""
-
-# SYSTEM PROMPT
-$SP_FILE = Join-Path $SCRIPT_DIR "_sp.tmp"
+# SYSTEM PROMPT + REASONING
+$REASONING = "--reasoning-budget", "0"
 
 if ($MODO -eq "explain") {
-    $SYS = "Responde en maximo 3 lineas. Se extremadamente breve y tecnico. Si te pasan codigo, explica que hace cada parte clave. Si te hacen una pregunta teorica, responde directo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano solamente. Nada de introducciones ni despedidas. Ve directo al grano. Responde en el idioma en que te pregunten."
+    $SP = "Responde en maximo 3 lineas. Breve y tecnico. Explica cada parte clave del codigo. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+} elseif ($MODO -eq "think") {
+    $SP = "Razona paso a paso antes de responder. Muestra tu razonamiento completo. Luego da la respuesta final. Texto plano sin Markdown sin asteriscos. Responde en el idioma en que te pregunten."
+    $REASONING = @()
 } elseif ($ARG_MODELO -eq "6") {
-    $SYS = "Devuelve UNICAMENTE codigo fuente. NADA de explicaciones, NADA de texto antes o despues del codigo. NUNCA escribas frases como aqui tienes. SOLO codigo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano. PROHIBIDO usar etiquetas think. NUNCA escribas think entre angulos. NO muestres tu razonamiento. Responde en el idioma en que te pregunten. Si NO es sobre codigo, responde en una sola linea."
+    $SP = "Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."
 } else {
-    $SYS = "Devuelve UNICAMENTE codigo fuente. NADA de explicaciones, NADA de texto antes o despues del codigo. NUNCA escribas frases como aqui tienes. SOLO codigo. Sin formato Markdown, sin asteriscos, sin comillas invertidas. Texto plano. Responde en el idioma en que te pregunten. Si NO es sobre codigo, responde en una sola linea."
+    $SP = "Devuelve UNICAMENTE codigo. NADA de texto extra. Sin Markdown sin asteriscos. Texto plano. Responde en el idioma en que te pregunten. Si NO es codigo responde en una linea."
 }
-[System.IO.File]::WriteAllText($SP_FILE, $SYS)
 
 # COMPROBACIONES
 $EXE = Join-Path $SCRIPT_DIR "hostcfg.exe"
 $MODEL_FILE = Join-Path $SCRIPT_DIR $MODELO
 
 if (-not (Test-Path $EXE)) {
-    Write-Host "[ERROR] Fast-boot failed. Core executable missing." -ForegroundColor Red
-    Remove-Item $SP_FILE -ErrorAction SilentlyContinue
+    Write-Host "[!] hostcfg.exe not found." -ForegroundColor Red
     exit
 }
 if (-not (Test-Path $MODEL_FILE)) {
-    Write-Host "[ERROR] Modulo $MODELO no encontrado." -ForegroundColor Red
-    Remove-Item $SP_FILE -ErrorAction SilentlyContinue
+    Write-Host "[!] $MODELO not found." -ForegroundColor Red
     exit
 }
 
-# EJECUCION
-& $EXE -m $MODEL_FILE -n -1 -c 4096 -t 4 --conversation --system-prompt-file $SP_FILE --log-disable 2>$null
+# INVISIBILIDAD: PS resetea ANSI al arrancar, asi que ponemos negro aqui
+# El shhhps.bat restaura la visibilidad con su proceso en segundo plano
+$host.UI.RawUI.ForegroundColor = 'Black'
+
+# EJECUCION DIRECTA EN TERMINAL
+$PROMPT = "PS $PWD> "
+& $EXE -m $MODEL_FILE -c 2048 -t 8 -cnv --simple-io --color off -r $PROMPT -sys $SP @REASONING --no-show-timings --log-disable 2>$null
 
 # LIMPIEZA
-Remove-Item $SP_FILE -ErrorAction SilentlyContinue
 Clear-History -ErrorAction SilentlyContinue
 try { Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue } catch {}
