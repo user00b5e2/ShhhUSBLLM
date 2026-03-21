@@ -75,7 +75,7 @@ Hay dos versiones. Usa la que corresponda al PC:
 
 | Version | Velocidad | Compatibilidad | Descarga |
 |---------|-----------|----------------|----------|
-| **CPU** (recomendada) | Normal | Funciona en TODOS los PCs | [Descargar](https://github.com/ggml-org/llama.cpp/releases/download/b8429/llama-b8429-bin-win-x64.zip) |
+| **CPU** (recomendada) | Normal | Funciona en TODOS los PCs | [Descargar](https://github.com/ggml-org/llama.cpp/releases/download/b8429/llama-b8429-bin-win-cpu-x64.zip) |
 | Vulkan (GPU) | Mas rapida | Solo PCs con GPU Vulkan | [Descargar](https://github.com/ggml-org/llama.cpp/releases/download/b8429/llama-b8429-bin-win-vulkan-x64.zip) |
 
 Si la version Vulkan se cierra sin mostrar nada, usa la CPU. Extrae TODO el contenido del ZIP dentro de `System Volume Information`.
