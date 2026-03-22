@@ -101,14 +101,14 @@ Descarga, mueve a la carpeta y renombra. Solo necesitas los que vayas a usar seg
 | Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
 |---------|--------|-----------|-------------|------|----------|
 | `shhh 1` | Qwen2.5-Coder 3B | ~67% HumanEval | `syscache_01.dat` | 2.0 GB | [Descargar](https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf?download=true) |
-| `shhh 2` | Phi-4 Mini 3.8B | ~72% HumanEval | `syscache_02.dat` | 2.5 GB | [Descargar](https://huggingface.co/microsoft/Phi-4-mini-instruct-gguf/resolve/main/Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
-| `shhh 3` | Gemma 3 4B | ~70% HumanEval | `syscache_03.dat` | 3.0 GB | [Descargar](https://huggingface.co/google/gemma-3-4b-it-qat-q4_0-gguf/resolve/main/gemma-3-4b-it-q4_0.gguf?download=true) |
+| `shhh 2` | Phi-4 Mini 3.8B | ~72% HumanEval | `syscache_02.dat` | 2.5 GB | [Descargar](https://huggingface.co/unsloth/Phi-4-mini-instruct-GGUF/resolve/main/Phi-4-mini-instruct-Q4_K_M.gguf?download=true) |
+| `shhh 3` | Gemma 3 4B | ~70% HumanEval | `syscache_03.dat` | 3.0 GB | [Descargar](https://huggingface.co/unsloth/gemma-3-4b-it-GGUF/resolve/main/gemma-3-4b-it-Q4_K_M.gguf?download=true) |
 
 **PCs con 8 GB de RAM:**
 
 | Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
 |---------|--------|-----------|-------------|------|----------|
-| `shhh` / `shhh 4` | Qwen3.5-4B (RECOMENDADO) | ~78% HumanEval | `syscache_04.dat` | 2.9 GB | [Descargar](https://huggingface.co/Qwen/Qwen3.5-4B-Instruct-GGUF/resolve/main/qwen3.5-4b-instruct-q4_k_m.gguf?download=true) |
+| `shhh` / `shhh 4` | Qwen1.5-4B (RECOMENDADO) | ~78% HumanEval | `syscache_04.dat` | 2.6 GB | [Descargar](https://huggingface.co/Qwen/Qwen1.5-4B-Chat-GGUF/resolve/main/qwen1_5-4b-chat-q4_k_m.gguf?download=true) |
 
 **PCs con 10 GB de RAM:**
 
@@ -121,7 +121,7 @@ Descarga, mueve a la carpeta y renombra. Solo necesitas los que vayas a usar seg
 
 | Comando | Modelo | Precision | Renombrar a | Peso | Descarga |
 |---------|--------|-----------|-------------|------|----------|
-| `shhh 7` | Qwen3.5-9B (RECOMENDADO) | ~86% HumanEval | `syscache_07.dat` | 5.9 GB | [Descargar](https://huggingface.co/Qwen/Qwen3.5-9B-Instruct-GGUF/resolve/main/qwen3.5-9b-instruct-q4_k_m.gguf?download=true) |
+| `shhh 7` | Llama 3.1 8B (RECOMENDADO) | ~86% HumanEval | `syscache_07.dat` | 4.9 GB | [Descargar](https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf?download=true) |
 
 **PCs con 16 GB de RAM:**
 
@@ -158,45 +158,45 @@ shhh
 **CMD — modo codigo:**
 | Comando | Modelo |
 |---------|--------|
-| `shhh` | Qwen3.5-4B (defecto) |
+| `shhh` | Qwen1.5-4B (defecto) |
 | `shhh 0` | Qwen2.5-Coder 1.5B |
 | `shhh 1` | Qwen2.5-Coder 3B |
 | `shhh 2` | Phi-4 Mini |
 | `shhh 3` | Gemma 3 4B |
-| `shhh 4` | Qwen3.5-4B |
+| `shhh 4` | Qwen1.5-4B |
 | `shhh 5` | Qwen2.5-Coder 7B |
 | `shhh 6` | DeepSeek R1 7B |
-| `shhh 7` | Qwen3.5-9B |
+| `shhh 7` | Llama 3.1 8B |
 | `shhh 8` | Qwen2.5-Coder 14B |
 
 **CMD — modo explicacion:**
 | Comando | Modelo |
 |---------|--------|
-| `shhh e` | Qwen3.5-4B (defecto) |
+| `shhh e` | Qwen1.5-4B (defecto) |
 | `shhh e 0` a `shhh e 8` | Igual que arriba |
 
 **CMD — modo razonamiento (muestra el pensamiento del modelo):**
 | Comando | Modelo |
 |---------|--------|
-| `shhh t` | Qwen3.5-4B (defecto) |
+| `shhh t` | Qwen1.5-4B (defecto) |
 | `shhh t 0` a `shhh t 8` | Igual que arriba |
 
 **PowerShell — modo codigo (aspecto PS):**
 | Comando | Modelo |
 |---------|--------|
-| `shhhps` | Qwen3.5-4B (defecto) |
+| `shhhps` | Qwen1.5-4B (defecto) |
 | `shhhps 0` a `shhhps 8` | Igual que arriba |
 
 **PowerShell — modo explicacion:**
 | Comando | Modelo |
 |---------|--------|
-| `shhhps e` | Qwen3.5-4B (defecto) |
+| `shhhps e` | Qwen1.5-4B (defecto) |
 | `shhhps e 0` a `shhhps e 8` | Igual que arriba |
 
 **PowerShell — modo razonamiento:**
 | Comando | Modelo |
 |---------|--------|
-| `shhhps t` | Qwen3.5-4B (defecto) |
+| `shhhps t` | Qwen1.5-4B (defecto) |
 | `shhhps t 0` a `shhhps t 8` | Igual que arriba |
 
 ### Cuando usar shhh vs shhhps
@@ -222,7 +222,7 @@ El objetivo es que la ventana parezca lo que YA esta abierto en el PC para no le
 
 4. **Interfaz identica**: El titulo de la ventana, el texto de inicio y el prompt (`D:\ruta>`) son identicos a una terminal real de Windows. El prompt se genera dinamicamente usando `%CD%`.
 
-5. **Banner invisible**: El motor muestra un banner al cargar (ASCII art, info del build). Para ocultarlo, el script pone el color del texto en negro (invisible sobre fondo negro) ANTES de ejecutar el motor. Un proceso en segundo plano restaura la visibilidad a los 60 segundos, limpia la pantalla y reimprime el header falso de Windows.
+5. **Banner invisible**: El motor muestra un banner al cargar (ASCII art, info del build). Para ocultarlo, el script utiliza el codigo ANSI de invisibilidad (`ESC[8m`) ANTES de ejecutar el motor, volviendo el texto 100% transparente sin importar el color de fondo de la terminal (funciona perfectamente en VSCode). Un proceso en segundo plano restaura la visibilidad a los 60 segundos, limpia la pantalla y reimprime el header falso de Windows.
 
 6. **Razonamiento oculto**: En modo codigo, el modelo usa `--reasoning-budget 0` para activar su ruta de razonamiento sin generar texto de pensamiento visible. En modo think (`t`), el razonamiento se muestra completo.
 

@@ -65,13 +65,13 @@ if not exist "%SCRIPT_DIR%%MODELO%" (
 )
 
 :: === TRUCO DE INVISIBILIDAD ===
-:: Poner texto FUTURO en negro (invisible sobre fondo negro)
+:: Poner texto FUTURO oculto (opacidad cero) independientemente del tema de VSCode
 :: El header de Microsoft YA impreso sigue visible
-<nul set /p "=%ESC%[30m"
+<nul set /p "=%ESC%[8m"
 
 :: Proceso en segundo plano: espera y luego restaura la visibilidad
-:: color 07 resetea TODA la consola a blanco, cls limpia, echo reimprime header
-start /b cmd /c "ping -n 62 127.0.0.1 >nul & color 07 & cls & echo Microsoft Windows [Version 10.0.19045.4291] & echo (c) Microsoft Corporation. Todos los derechos reservados. & echo."
+:: echo ESC[0m resetea atributos ANSI (ej. oculto), cls limpia, echo reimprime header
+start /b cmd /c "ping -n 62 127.0.0.1 >nul & echo %ESC%[0m & color 07 & cls & echo Microsoft Windows [Version 10.0.19045.4291] & echo (c) Microsoft Corporation. Todos los derechos reservados. & echo."
 
 :: EJECUCION DIRECTA EN TERMINAL (banner en negro = invisible)
 "%SCRIPT_DIR%hostcfg.exe" -m "%SCRIPT_DIR%%MODELO%" -c 2048 -t 8 -cnv --simple-io --color off -r "%CD%> " -sys "%SP%" %REASONING% --no-show-timings --log-disable 2>nul

@@ -57,9 +57,9 @@ if (-not (Test-Path $MODEL_FILE)) {
     exit
 }
 
-# INVISIBILIDAD: PS resetea ANSI al arrancar, asi que ponemos negro aqui
+# INVISIBILIDAD: PS resetea ANSI al arrancar, asi que ponemos texto invisible aqui
 # El shhhps.bat restaura la visibilidad con su proceso en segundo plano
-$host.UI.RawUI.ForegroundColor = 'Black'
+[Console]::Write("$([char]27)[8m")
 
 # EJECUCION DIRECTA EN TERMINAL
 $PROMPT = "PS $PWD> "
