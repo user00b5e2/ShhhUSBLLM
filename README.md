@@ -255,3 +255,69 @@ El objetivo es que la ventana parezca lo que YA esta abierto en el PC para no le
 - Desde la terminal integrada de VSCode es todavia mas discreto: parece que estas compilando.
 - Usa el modelo mas ligero que te sirva para que responda rapido.
 - Si alguien se acerca, pulsa Ctrl+C para parar la respuesta y escribe `exit` para cerrar.
+
+---
+
+## Modo agente (`update`)
+
+Adicional al modo chat (`shhh`), el USB incluye un **harness de agente** que da al modelo permisos para leer, escribir, editar y ejecutar comandos dentro del workspace donde lo lances. Pensado para no tocar nada con el ratón: tipeas a ciegas qué quieres que pase y el agente edita los ficheros por ti.
+
+Para la documentación técnica completa, ver `docs/`.
+
+### Uso
+
+```cmd
+D:\System Volume Information> update
+```
+
+o desde PowerShell:
+
+```powershell
+PS D:\System Volume Information> .\update.ps1
+```
+
+| Forma | Qué hace |
+|-------|----------|
+| `update` | El advisor elige modelo según la frase que escribas. |
+| `update 1` | Fuerza Qwen2.5-Coder-1.5B Q4 (rápido, edits puntuales). Default agente. |
+| `update 2` | Fuerza Qwen2.5-Coder-3B Q4 (más calidad, tareas multi-fichero). |
+| `update 3` | Modo chat con 3B (no toca ficheros). |
+| `update 4` | Modo chat con 1.5B (PCs muy justos). |
+| `update 5` | Qwen2.5-Coder-7B Q4 (tareas grandes, requiere descargar modelo opcional). |
+| `update --stop` | Mata el `hostcfg.exe` que quedó cargado en background. |
+
+### Cómo funciona el sigilo
+
+- Misma técnica visual que `shhh`: prompt falso (capturado del PS real) + `ESC[8m`.
+- **Además** la entrada del usuario es invisible (modo "raw" sin echo): aunque alguien mire por encima del hombro o estés compartiendo pantalla, no ven lo que tecleas ni cuando pegas con el portapapeles.
+- Por defecto, **cero output del agente** entre prompts: solo aparece el siguiente prompt cuando termina. `set SHHH_SHOW_RESULT=1` para ver el resumen del turno; `set SHHH_VERBOSE=1` para la traza completa.
+- `Ctrl+C` durante la ejecución limpia la pantalla y reimprime un prompt limpio (panic button).
+
+### Permisos y guardarraíles
+
+Por defecto el agente está confinado al directorio actual del workspace. Bloqueado:
+
+- Escapar del CWD (rutas con `..`, absolutas o symlinks que apunten fuera).
+- Tocar `.git/`, `.env*`, `*.key`, `*.pem`, `id_rsa*`, `node_modules/` y similares.
+- Comandos peligrosos (`format`, `shutdown`, `rm -rf`, `reg delete`, `net user`, `curl`, `wget`, `iex`, ...).
+
+Flag `--unsafe` desactiva los guardarraíles. **No se recomienda** para uso real: una alucinación del modelo de 1.5B puede borrar trabajo.
+
+### Requisitos de RAM
+
+Pensado para Windows 8 GB sin GPU. En CPU AVX2 típica:
+
+| Slot | RAM modelo | tok/s aprox. | Latencia 1 edit |
+|------|-----------|--------------|-----------------|
+| 1 (1.5B) | ~1.3 GB | 10–15 | 10–20 s |
+| 2 (3B) | ~2.4 GB | 3–5 | 40–80 s |
+| 5 (7B) | ~5.2 GB | 1.5–3 | 2–5 min/fichero (cierra Chrome) |
+
+El backend (`hostcfg.exe`) queda residente entre invocaciones del REPL para no pagar la carga del modelo cada vez (~30–40 s desde USB la primera vez). Se cierra automáticamente al salir del REPL (`exit` o `Ctrl+C`). `update --stop` lo libera al instante desde otra terminal.
+
+### Limitaciones conocidas
+
+- Modelos pequeños (1.5B) ocasionalmente se salen del formato XML; el harness reintenta una vez. Si falla, escribe la petición de otra forma.
+- `edit_file` exige que el texto a sustituir aparezca exactamente una vez. Si el modelo lo confunde, te lo dirá y reintentará leyendo el fichero.
+- No hay historial entre sesiones (decisión deliberada, igual que `shhh`).
+- Un antivirus puede marcar `bgupd.exe` o `hostcfg.exe` por ser binarios sin firmar; añadir excepción manualmente o asumir falso positivo.
