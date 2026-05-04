@@ -163,16 +163,12 @@ func main() {
 			ag := &Agent{
 				Cli: client, Tools: tools, Out: os.Stdout,
 				Verbose: *verbose, MaxIter: info.MaxIter,
-				EagerDone: info.EagerDone, Qwen3DualMode: info.Qwen3DualMode,
+				EagerDone: info.EagerDone,
 			}
 			output, err = ag.Run(ctx, req)
 		} else {
-			sys := chatSystemPrompt
-			if info.Qwen3DualMode {
-				sys = "/no_think\n\n" + sys
-			}
 			output, err = client.Complete(ctx, []Message{
-				{Role: "system", Content: sys},
+				{Role: "system", Content: chatSystemPrompt},
 				{Role: "user", Content: req},
 			}, nil)
 		}
@@ -238,16 +234,12 @@ func runOnce(req string, unsafe bool, modelsDir, binDir, host string, port int, 
 		ag := &Agent{
 			Cli: client, Tools: tools, Out: os.Stdout,
 			Verbose: verbose, MaxIter: info.MaxIter,
-			EagerDone: info.EagerDone, Qwen3DualMode: info.Qwen3DualMode,
+			EagerDone: info.EagerDone,
 		}
 		out, err = ag.Run(ctx, req)
 	} else {
-		sys := chatSystemPrompt
-		if info.Qwen3DualMode {
-			sys = "/no_think\n\n" + sys
-		}
 		out, err = client.Complete(ctx, []Message{
-			{Role: "system", Content: sys},
+			{Role: "system", Content: chatSystemPrompt},
 			{Role: "user", Content: req},
 		}, nil)
 	}

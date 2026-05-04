@@ -222,24 +222,19 @@ func extractFirstJSONObject(s string) string {
 
 // Agent runs the ReAct loop until 'done' or MaxIter.
 type Agent struct {
-	Cli           *Client
-	Tools         *Tools
-	Out           io.Writer // where to print intermediate steps if verbose
-	Verbose       bool
-	MaxIter       int  // 0 → defaultMaxIterations
-	EagerDone     bool // tiny-model hack: end turn after first successful mutation
-	Qwen3DualMode bool // prepend "/no_think" to system prompt for Qwen3 dual-mode models
+	Cli       *Client
+	Tools     *Tools
+	Out       io.Writer // where to print intermediate steps if verbose
+	Verbose   bool
+	MaxIter   int  // 0 → defaultMaxIterations
+	EagerDone bool // tiny-model hack: end turn after first successful mutation
 }
 
 // Run executes one user request, blocking until 'done' is called or iterations exhaust.
 // Returns the summary string.
 func (a *Agent) Run(ctx context.Context, userReq string) (string, error) {
-	sysPrompt := agentSystemPrompt
-	if a.Qwen3DualMode {
-		sysPrompt = "/no_think\n\n" + sysPrompt
-	}
 	msgs := []Message{
-		{Role: "system", Content: sysPrompt},
+		{Role: "system", Content: agentSystemPrompt},
 		{Role: "user", Content: userReq},
 	}
 	stop := []string{"</args>"}

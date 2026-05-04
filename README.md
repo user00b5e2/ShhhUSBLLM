@@ -278,12 +278,12 @@ PS D:\System Volume Information> .\update.ps1
 
 | Forma | Qué hace |
 |-------|----------|
-| `update` | El advisor elige modelo según la frase que escribas. |
-| `update 1` | Fuerza Qwen3-1.7B Q4 (rápido, edits puntuales). Default agente. |
-| `update 2` | Fuerza Qwen3-4B-Instruct-2507 Q4 (más calidad, tareas multi-fichero). |
-| `update 3` | Modo chat con 4B (no toca ficheros). |
-| `update 4` | Modo chat con 1.7B (PCs muy justos). |
-| `update 5` | Qwen3-8B Q4 (tareas grandes, requiere descargar modelo opcional). |
+| `update` | El advisor elige modelo según la frase que escribas. **Default coding: 3B-Coder.** |
+| `update 1` | Fuerza Qwen2.5-Coder-1.5B Q4 (rápido, edits triviales / typos). |
+| `update 2` | Fuerza Qwen2.5-Coder-3B Q4 (default coding agent). |
+| `update 3` | Modo chat con 3B-Coder (no toca ficheros). |
+| `update 4` | Modo chat con 1.5B-Coder (PCs muy justos). |
+| `update 5` | Qwen2.5-Coder-7B Q4 (tareas grandes, requiere descargar modelo opcional). |
 | `update --stop` | Mata el `hostcfg.exe` que quedó cargado en background. |
 
 ### Cómo funciona el sigilo
@@ -309,9 +309,9 @@ Pensado para Windows 8 GB sin GPU. En CPU AVX2 típica:
 
 | Slot | RAM modelo | tok/s aprox. | Latencia 1 edit |
 |------|-----------|--------------|-----------------|
-| 1 (1.7B) | ~1.4 GB | 9–14 | 10–22 s |
-| 2 (4B) | ~2.9 GB | 2.5–4 | 40–80 s |
-| 5 (8B) | ~5.7 GB | 1.2–2.5 | 2.5–6 min/fichero (cierra Chrome) |
+| 1 (1.5B) | ~1.3 GB | 10–15 | 10–20 s |
+| 2 (3B) | ~2.4 GB | 3–5 | 40–80 s |
+| 5 (7B) | ~5.2 GB | 1.5–3 | 2–5 min/fichero (cierra Chrome) |
 
 El backend (`hostcfg.exe`) queda residente entre invocaciones del REPL para no pagar la carga del modelo cada vez (~30–40 s desde USB la primera vez). Se cierra automáticamente al salir del REPL (`exit` o `Ctrl+C`). `update --stop` lo libera al instante desde otra terminal.
 

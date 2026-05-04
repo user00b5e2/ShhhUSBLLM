@@ -70,63 +70,59 @@ Esta iteración refina la discreción visual del harness, añade un slot de mode
 
 ---
 
-# Iteración 3 — Modelos Qwen3 (mayo 2026)
+# Iteración 3 — Refinamiento del default y reverso a Qwen2.5-Coder (mayo 2026)
 
 ## Resumen ejecutivo
 
-Reemplazo de la familia de modelos en todos los slots: **Qwen2.5-Coder → Qwen3 / Qwen3-Instruct-2507**. Mejora estimada de calidad: una "talla" — el 1.7B se aproxima al 3B anterior, el 4B al 7B anterior, el 8B al 14B anterior.
+Dos cambios:
 
-| Área | Iter 2 | Iter 3 |
-|------|--------|--------|
-| Slot 1 | Qwen2.5-Coder-1.5B Q4 | **Qwen3-1.7B Q4** + `/no_think` |
-| Slot 2 | Qwen2.5-Coder-3B Q4 | **Qwen3-4B-Instruct-2507 Q4** (non-thinking nativo) |
-| Slot 3 | Qwen2.5-Coder-3B Q4 | **Qwen3-4B-Instruct-2507 Q4** |
-| Slot 4 | Qwen2.5-1.5B-Instruct Q4 | **Qwen3-1.7B Q4** + `/no_think` |
-| Slot 5 | Qwen2.5-Coder-7B Q4 | **Qwen3-8B Q4** + `/no_think` |
-| GGUFs distintos en disco | 4 | **3** (slots 1+4 comparten Qwen3-1.7B; 2+3 comparten 4B-Instruct-2507) |
-| `Qwen3DualMode` flag | n/a | Nuevo en `ModelInfo`; inyecta `/no_think` al system prompt |
+1. **Default del advisor cambia**: ahora cuando `update` (sin slot) detecta una tarea de coding, abre el **slot 2 (3B-Coder)** por defecto, no el slot 1 (1.5B). El 1.5B se reserva para tareas explícitamente triviales (typos, one-liners, renames). Esto pone el sweet-spot calidad/velocidad como default para programar.
+2. **Mantenemos Qwen2.5-Coder** en todos los slots tras evaluar la alternativa Qwen3 dense. Razón: tool-calling con XML estricto es más fiable en una familia coder-específica fine-tuned sobre código.
 
-## Por qué este cambio
+## Tabla final de modelos (idéntica a iter 2 pero con default ajustado)
 
-A fecha mayo 2026, los benchmarks oficiales de Alibaba (BigCodeBench, EvalPlus, LiveCodeBench) y la comunidad muestran que Qwen3 dense pequeño bate a Qwen2.5-Coder a paridad de tamaño:
+| Slot | Modelo | RAM | Modo | Default del advisor |
+|------|--------|-----|------|---------------------|
+| 1 | Qwen2.5-Coder-1.5B Q4 | 1.3 GB | agente | Solo si la petición tiene "typo / one-liner / trivial" |
+| 2 | Qwen2.5-Coder-3B Q4 | 2.4 GB | agente | **Sí** — default cuando hay verbo de acción |
+| 3 | Qwen2.5-Coder-3B Q4 | 2.4 GB | chat | Sí — para "explica / cómo funciona" |
+| 4 | Qwen2.5-Coder-1.5B Q4 | 1.3 GB | chat | No (solo manual) |
+| 5 | Qwen2.5-Coder-7B Q4 | 5.2 GB | agente | Sí — para "spec.md / 5 cpp / compile" |
 
-- Qwen3-1.7B base ≈ Qwen2.5-Coder-3B en code benchmarks.
-- Qwen3-4B base ≈ Qwen2.5-Coder-7B.
-- Qwen3-8B base ≈ Qwen2.5-Coder-14B.
+Beneficio: **3 GGUFs distintos** en disco para 5 slots (slot 4 ahora reusa el 1.5B-Coder de slot 1; antes era 1.5B-Instruct generalista).
 
-A igual RAM, ganamos calidad. El coste es ~5–25 % más de latencia por token según el slot, parcialmente compensado por menos rondas de corrección.
+## Por qué se descartó Qwen3 dense
 
-## Decisiones técnicas tomadas
+Probé Qwen3-1.7B / Qwen3-4B-Instruct-2507 / Qwen3-8B en una rama intermedia de iter3. Los datos:
 
-- **Variantes Instruct-2507** (julio 2025) para los slots donde existen (4B). Esa rama está fine-tuned **solo en non-thinking**, perfecto para nuestro tool-calling estricto con XML.
-- **Qwen3 base + `/no_think` runtime** para los slots donde no hay 2507 (1.7B, 8B). El harness inyecta `/no_think\n\n` al inicio del system prompt cuando `Qwen3DualMode=true`.
-- **No subimos a Qwen3-Coder-Next**: es MoE 80B / 3B activos — necesita ~32 GB para cargar pesos, fuera del target 8 GB.
-- **Repo elegido**: `unsloth/Qwen3-*-GGUF` por estabilidad y disponibilidad de quants. Fallback no documentado: `Qwen/Qwen3-*-GGUF` oficial.
+- **Qwen3-1.7B emitió `}>` después del JSON** en `<args>`, requiriendo un parser tolerante (`extractFirstJSONObject`). Qwen2.5-Coder-1.5B no tiene ese problema.
+- **Qwen3 dual-mode requería `/no_think` runtime** para evitar tokens `<think>` rompiendo el parser. Complicación innecesaria.
+- Los benchmarks oficiales de Alibaba decían "Qwen3-1.7B base ≈ Qwen2.5-Coder-3B" pero esos eran HumanEval/MBPP, **no tool-calling estricto bajo XML**, que es nuestro caso real.
+- Qwen2.5-Coder-7B sigue siendo la opción coder-específica más potente que cabe en 8 GB; Qwen3-Coder no tiene variantes pequeñas dense (sólo MoE 80B+, fuera de target).
 
-## Cambios en el código
+## Cambios en el código respecto a iter 2
 
 | Fichero | Cambio |
 |---------|--------|
-| `shhh-agent/advisor.go` | Nuevo campo `Qwen3DualMode bool` en `ModelInfo`; tabla de modelos rehecha. |
-| `shhh-agent/agent.go` | `Agent` acepta `Qwen3DualMode`; prepend `/no_think\n\n` al system prompt si está activo. **Nuevo helper `extractFirstJSONObject`** para tolerar sufijos non-JSON en `<args>` (algunos quants de Qwen3 emiten `>` extra). |
-| `shhh-agent/main.go` | Propaga `Qwen3DualMode` al `Agent` y al chat path. |
-| `download-models.sh` | URLs nuevas (3 GGUFs en lugar de 4); slot 5 sigue opt-in con `WITH_LARGE=1`. |
-| `docs/04-MODELOS-Y-RAM.md` | Tabla rehecha; explicación de `/no_think` y Qwen3 vs Qwen2.5-Coder. |
-| `docs/05-DURACIONES.md` | Latencias actualizadas (1.7B ~5 % más lento, 4B ~25 %, 8B ~15 %). |
-| `README.md`, `QUICKSTART.md` | Tablas de slots con los nombres nuevos. |
+| `shhh-agent/advisor.go` | Default heurístico de "agente" cambió de slot 1 a **slot 2**. Slot 4 ahora usa `qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` (mismo fichero que slot 1) en lugar de `qwen2.5-1.5b-instruct-q4_k_m.gguf` (no-coder). Nuevos marcadores `trivialMarkers` para identificar peticiones que sí justifican slot 1. |
+| `shhh-agent/agent.go` | Mantengo `extractFirstJSONObject` como parser tolerante general aunque no es necesario con Qwen2.5-Coder — robustez para futuros modelos. |
+| `download-models.sh` | URLs apuntan a la familia Qwen2.5-Coder (oficial `Qwen/Qwen2.5-Coder-*-Instruct-GGUF`). |
+| `docs/04-MODELOS-Y-RAM.md` | Tabla rehecha + explicación de la decisión Qwen2.5-Coder vs Qwen3 dense. |
+| `docs/05-DURACIONES.md` | Latencias revertidas a las de iter 2. |
+
+## Lo que NO se cambió
+
+- `shhh.bat`, `shhh.ps1`, `shhhps.bat` — modo chat clásico del proyecto base, sigue intacto.
+- Tabla del README "Descargar modelos" (sección modo chat clásico).
+- Lógica de stealth, tools, server lifecycle — independiente del modelo.
+- `extractFirstJSONObject` (parser tolerante de iter3-Qwen3) — se mantiene como defensa adicional aunque ya no es estrictamente necesario.
 
 ## Validación realizada
 
-Smoke test E2E en macOS M4 con Qwen3-1.7B Q4_K_M:
+Smoke test E2E en macOS con Qwen2.5-Coder-1.5B (los slots 2 y 5 requieren descarga; lógica idéntica):
 
 - Spec: MD pidiendo crear `hello.cpp` con bucle `cout` N veces, N por stdin.
 - Resultado: el agente leyó el MD, generó código C++ correcto en 1 turno.
 - `g++ hello.cpp -o hello && echo 3 | ./hello` → `holaholahola`. ✅
 
-Detalle observado durante la validación: Qwen3-1.7B emite ocasionalmente caracteres extra después del JSON de `<args>` (visto: `}>` en lugar de `}`). El parser ahora extrae el primer objeto JSON balanceado y descarta el sufijo, igual que un parser XML laxo.
-
-## Lo que NO se hizo
-
-- **No se actualizó la tabla del README "Descargar modelos" del modo chat clásico** (líneas que mencionan Qwen1.5-4B, Phi-4-mini, Llama 3.1, etc.). Esa sección del proyecto base está atada a `shhh.bat`/`shhh.ps1`/`shhhps.bat` con URLs hardcoded; tocarla requiere reescribir esos `.bat` y se pospuso.
-- **No se eliminó el modelo Qwen2.5-Coder-1.5B viejo del disco automáticamente** — lo borré manualmente al validar la iter3. Si lo tienes descargado, puedes borrarlo: ya no se referencia.
-- **No se validó en Windows real**, sigue siendo válida la nota de "no probado en Windows" de `08-LIMITACIONES.md`.
+Validación pendiente en Windows real (sigue válida la nota de "no probado en Windows" de `08-LIMITACIONES.md`).

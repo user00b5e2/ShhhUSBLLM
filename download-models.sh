@@ -8,13 +8,13 @@ mkdir -p models
 
 declare -a MODELS=(
   # slot:filename:url
-  # Slots 1 and 4 share Qwen3-1.7B (dual-mode, /no_think directive); only one download needed.
-  "1:qwen3-1.7b-q4_k_m.gguf:https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf"
-  # Slots 2 and 3 share Qwen3-4B-Instruct-2507 (non-thinking native).
-  "2:qwen3-4b-instruct-2507-q4_k_m.gguf:https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/resolve/main/Qwen3-4B-Instruct-2507-Q4_K_M.gguf"
-  # Slot 5 (8B) is OPT-IN — adds ~5.0 GB and is only viable on 8 GB RAM if you
+  # Slots 1 and 4 share Qwen2.5-Coder-1.5B; only one download needed.
+  "1:qwen2.5-coder-1.5b-instruct-q4_k_m.gguf:https://huggingface.co/Qwen/Qwen2.5-Coder-1.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-1.5b-instruct-q4_k_m.gguf"
+  # Slots 2 and 3 share Qwen2.5-Coder-3B (default coding agent + chat).
+  "2:qwen2.5-coder-3b-instruct-q4_k_m.gguf:https://huggingface.co/Qwen/Qwen2.5-Coder-3B-Instruct-GGUF/resolve/main/qwen2.5-coder-3b-instruct-q4_k_m.gguf"
+  # Slot 5 (7B) is OPT-IN — adds ~4.7 GB and is only viable on 8 GB RAM if you
   # close Chrome / heavy apps. Enable by setting WITH_LARGE=1.
-  "${WITH_LARGE:+5:qwen3-8b-q4_k_m.gguf:https://huggingface.co/unsloth/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf}"
+  "${WITH_LARGE:+5:qwen2.5-coder-7b-instruct-q4_k_m.gguf:https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF/resolve/main/qwen2.5-coder-7b-instruct-q4_k_m.gguf}"
 )
 
 for entry in "${MODELS[@]}"; do

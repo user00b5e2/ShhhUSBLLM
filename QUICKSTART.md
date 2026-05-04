@@ -50,11 +50,11 @@ update.bat
 
 | Slot | Modelo | RAM | Modo | Cuándo usarlo |
 |------|--------|-----|------|---------------|
-| 1 | Qwen3-1.7B Q4 | ~1.4 GB | agente | **Default agente.** Edits puntuales rápidos. |
-| 2 | Qwen3-4B-Instruct-2507 Q4 | ~2.9 GB | agente | Edits multi-fichero o lógica compleja. |
-| 3 | Qwen3-4B-Instruct-2507 Q4 | ~2.9 GB | chat | Explicar código, sin tocar ficheros. |
-| 4 | Qwen3-1.7B Q4 | ~1.4 GB | chat | Chat ligero, PCs muy justos. |
-| 5 | Qwen3-8B Q4 | ~5.7 GB | agente | Tareas grandes (5 cpp desde MD). Cierra Chrome. |
+| 1 | Qwen2.5-Coder-1.5B Q4 | ~1.3 GB | agente | Lane rápido para edits triviales / typos. |
+| 2 | Qwen2.5-Coder-3B Q4 | ~2.4 GB | agente | **Default coding.** Edits multi-fichero, lógica compleja. |
+| 3 | Qwen2.5-Coder-3B Q4 | ~2.4 GB | chat | Explicar código, sin tocar ficheros. |
+| 4 | Qwen2.5-Coder-1.5B Q4 | ~1.3 GB | chat | Chat ligero, PCs muy justos. |
+| 5 | Qwen2.5-Coder-7B Q4 | ~5.2 GB | agente | Tareas grandes (5 cpp desde MD). Cierra Chrome. |
 
 ---
 
