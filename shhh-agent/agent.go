@@ -171,24 +171,75 @@ func parseTool(text string) (*parsedCall, error) {
 	if m == nil {
 		return nil, fmt.Errorf("no <tool>...</tool><args>...</args> found")
 	}
-	return &parsedCall{Name: m[1], Args: json.RawMessage(strings.TrimSpace(m[2]))}, nil
+	args := strings.TrimSpace(m[2])
+	// Tolerate a non-JSON suffix after the closing `}` (some Qwen3 quants emit
+	// stray characters like ">" after the args object). Extract the first
+	// balanced JSON object and drop anything after it.
+	args = extractFirstJSONObject(args)
+	return &parsedCall{Name: m[1], Args: json.RawMessage(args)}, nil
+}
+
+// extractFirstJSONObject returns the substring from the first `{` to its
+// balanced matching `}`, ignoring `{`/`}` inside JSON strings. If parsing
+// fails, the original input is returned unchanged.
+func extractFirstJSONObject(s string) string {
+	start := strings.IndexByte(s, '{')
+	if start < 0 {
+		return s
+	}
+	depth := 0
+	inStr := false
+	escape := false
+	for i := start; i < len(s); i++ {
+		c := s[i]
+		if escape {
+			escape = false
+			continue
+		}
+		if inStr {
+			switch c {
+			case '\\':
+				escape = true
+			case '"':
+				inStr = false
+			}
+			continue
+		}
+		switch c {
+		case '"':
+			inStr = true
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 {
+				return s[start : i+1]
+			}
+		}
+	}
+	return s
 }
 
 // Agent runs the ReAct loop until 'done' or MaxIter.
 type Agent struct {
-	Cli       *Client
-	Tools     *Tools
-	Out       io.Writer // where to print intermediate steps if verbose
-	Verbose   bool
-	MaxIter   int  // 0 → defaultMaxIterations
-	EagerDone bool // tiny-model hack: end turn after first successful mutation
+	Cli           *Client
+	Tools         *Tools
+	Out           io.Writer // where to print intermediate steps if verbose
+	Verbose       bool
+	MaxIter       int  // 0 → defaultMaxIterations
+	EagerDone     bool // tiny-model hack: end turn after first successful mutation
+	Qwen3DualMode bool // prepend "/no_think" to system prompt for Qwen3 dual-mode models
 }
 
 // Run executes one user request, blocking until 'done' is called or iterations exhaust.
 // Returns the summary string.
 func (a *Agent) Run(ctx context.Context, userReq string) (string, error) {
+	sysPrompt := agentSystemPrompt
+	if a.Qwen3DualMode {
+		sysPrompt = "/no_think\n\n" + sysPrompt
+	}
 	msgs := []Message{
-		{Role: "system", Content: agentSystemPrompt},
+		{Role: "system", Content: sysPrompt},
 		{Role: "user", Content: userReq},
 	}
 	stop := []string{"</args>"}

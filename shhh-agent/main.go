@@ -160,11 +160,19 @@ func main() {
 
 		var output string
 		if info.Mode == ModeAgent {
-			ag := &Agent{Cli: client, Tools: tools, Out: os.Stdout, Verbose: *verbose, MaxIter: info.MaxIter, EagerDone: info.EagerDone}
+			ag := &Agent{
+				Cli: client, Tools: tools, Out: os.Stdout,
+				Verbose: *verbose, MaxIter: info.MaxIter,
+				EagerDone: info.EagerDone, Qwen3DualMode: info.Qwen3DualMode,
+			}
 			output, err = ag.Run(ctx, req)
 		} else {
+			sys := chatSystemPrompt
+			if info.Qwen3DualMode {
+				sys = "/no_think\n\n" + sys
+			}
 			output, err = client.Complete(ctx, []Message{
-				{Role: "system", Content: chatSystemPrompt},
+				{Role: "system", Content: sys},
 				{Role: "user", Content: req},
 			}, nil)
 		}
@@ -227,11 +235,19 @@ func runOnce(req string, unsafe bool, modelsDir, binDir, host string, port int, 
 	defer cancel()
 	var out string
 	if info.Mode == ModeAgent {
-		ag := &Agent{Cli: client, Tools: tools, Out: os.Stdout, Verbose: verbose}
+		ag := &Agent{
+			Cli: client, Tools: tools, Out: os.Stdout,
+			Verbose: verbose, MaxIter: info.MaxIter,
+			EagerDone: info.EagerDone, Qwen3DualMode: info.Qwen3DualMode,
+		}
 		out, err = ag.Run(ctx, req)
 	} else {
+		sys := chatSystemPrompt
+		if info.Qwen3DualMode {
+			sys = "/no_think\n\n" + sys
+		}
 		out, err = client.Complete(ctx, []Message{
-			{Role: "system", Content: chatSystemPrompt},
+			{Role: "system", Content: sys},
 			{Role: "user", Content: req},
 		}, nil)
 	}
