@@ -264,6 +264,177 @@ Adicional al modo chat (`shhh`), el USB incluye un **harness de agente** que da 
 
 Para la documentación técnica completa, ver `docs/`.
 
+### Instalación paso a paso del modo `update`
+
+Pasos para tener el modo agente funcionando en el USB. Asume que ya tienes preparado el USB con el modo chat clásico (secciones 1–6 más arriba) — si no, hazlo primero.
+
+#### Requisitos previos en la máquina de preparación
+
+Necesitas **una vez** una máquina (Linux, macOS o Windows con WSL/Git Bash) con:
+
+- **Go 1.20+** — para compilar el binario `bgupd.exe`. [Descargar](https://go.dev/dl/) o `brew install go` / `apt install golang-go`.
+- **curl** — para los scripts de descarga (incluido por defecto en macOS/Linux; Windows 10+ ya lo trae).
+- **bash** + **unzip** — los scripts son `.sh` (en Windows usa Git Bash o WSL).
+- **Conexión a internet** — solo durante la preparación. La máquina destino donde lanzas `update` puede estar offline.
+
+#### Paso 1 — Clonar / descargar el proyecto
+
+```bash
+git clone https://github.com/<tu-usuario>/<tu-repo>.git "LLM Terminal"
+cd "LLM Terminal"
+```
+
+O descargar el ZIP de GitHub y descomprimir.
+
+#### Paso 2 — Compilar el binario `bgupd.exe`
+
+```bash
+./build.sh
+```
+
+Genera `bin/bgupd.exe` (~7 MB, cross-compile a Windows amd64). El script ya lleva los flags `-trimpath -ldflags="-s -w"` para reducir tamaño y eliminar paths absolutos del binario.
+
+#### Paso 3 — Descargar el backend de inferencia (`hostcfg.exe` + DLLs)
+
+```bash
+./download-llama.sh
+```
+
+Esto:
+
+1. Descarga la build oficial Windows AVX2 de `llama.cpp` (release pinneado en el script).
+2. Renombra `llama-server.exe` → `hostcfg.exe` (camuflaje en Task Manager).
+3. Copia los DLLs necesarios (`ggml-*.dll`, `llama.dll`) al lado.
+
+Resultado: `bin/bgupd.exe` + `bin/hostcfg.exe` + `bin/*.dll`.
+
+Si quieres usar otra versión de llama.cpp, edita `LLAMA_RELEASE_URL` al inicio del script. Asegúrate de que sea la build **CPU-x64 AVX2**, no la Vulkan (los modelos Qwen-Coder Q4 no necesitan GPU).
+
+#### Paso 4 — Descargar los modelos GGUF
+
+Pack básico (slots 1–4, ~3 GB en total):
+
+```bash
+./download-models.sh
+```
+
+Descarga 2 ficheros desde Hugging Face:
+
+| Fichero | Para qué slots | Tamaño |
+|---------|----------------|--------|
+| `qwen2.5-coder-1.5b-instruct-q4_k_m.gguf` | slot 1 (agente fast), slot 4 (chat fallback) | ~1.0 GB |
+| `qwen2.5-coder-3b-instruct-q4_k_m.gguf` | slot 2 (agente default), slot 3 (chat) | ~2.0 GB |
+
+Pack completo (añade slot 5, +4.7 GB):
+
+```bash
+WITH_LARGE=1 ./download-models.sh
+```
+
+Descarga adicional `qwen2.5-coder-7b-instruct-q4_k_m.gguf`. Solo merece la pena si vas a usar el slot 5 para tareas grandes (multi-fichero, specs largas).
+
+Los `.gguf` van a `models/`. El script es idempotente: re-ejecutar salta los que ya están descargados.
+
+> **Nota sobre integridad**: si la descarga se corta, llama-server reportará `error loading model: tensor 'X.weight' data is not within the file bounds`. Solución: borra el `.gguf` y ejecuta otra vez `./download-models.sh`.
+
+#### Paso 5 — Verificar el resultado
+
+Tras los pasos 2–4 deberías tener:
+
+```
+LLM Terminal/
+├── bin/
+│   ├── bgupd.exe                              (~7 MB)
+│   ├── hostcfg.exe                            (~50–80 MB)
+│   └── *.dll                                  (varios)
+├── models/
+│   ├── qwen2.5-coder-1.5b-instruct-q4_k_m.gguf  (~1.0 GB)
+│   ├── qwen2.5-coder-3b-instruct-q4_k_m.gguf    (~2.0 GB)
+│   └── qwen2.5-coder-7b-instruct-q4_k_m.gguf    (~4.7 GB, opcional)
+├── update.bat
+├── update.ps1
+└── ...
+```
+
+#### Paso 6 — Copiar al USB
+
+Linux / macOS:
+
+```bash
+USB=/Volumes/MIUSB                              # ajusta a tu volumen
+mkdir -p "$USB/LLM"
+cp -R bin models docs *.bat *.ps1 *.md "$USB/LLM/"
+diskutil eject "$USB"                           # macOS; en Linux: umount
+```
+
+Windows (cmd, desde la propia máquina de preparación):
+
+```cmd
+robocopy . D:\LLM /E /XF *.go *.sh /XD shhh-agent .git
+```
+
+Si quieres mantener la convención del proyecto base (carpeta oculta `System Volume Information`), copia los ficheros allí dentro en lugar de a `LLM/`.
+
+#### Paso 7 — Ejecutar en el Windows destino
+
+Conecta el USB al PC objetivo. En la **terminal integrada de VS Code** (recomendado, abre PowerShell por defecto):
+
+```powershell
+PS C:\Users\demo> D:                           # tu letra de USB
+PS D:\> cd LLM
+PS D:\LLM> .\update.ps1
+```
+
+O desde CMD:
+
+```cmd
+D:
+cd \LLM
+update.bat
+```
+
+Lo que verás:
+
+1. **El prompt parece idéntico al que tenías** (porque `update.ps1` capturó tu prompt PS real al arrancar).
+2. **Tipeas a ciegas** — los caracteres no se renderizan (input invisible). Pulsa Enter cuando termines.
+3. **Silencio durante el procesamiento** — 10–60 segundos según el slot.
+4. **Aparece el siguiente prompt** → la IA terminó. Abre tus ficheros en VS Code para ver lo que hizo.
+
+Variables de entorno útiles (PS: `$env:NAME = "valor"`, CMD: `set NAME=valor`):
+
+```
+SHHH_VERBOSE=1       imprime cada paso del agente y errores completos
+SHHH_SHOW_RESULT=1   solo el resumen final del turno (entre silencio y verbose)
+SHHH_PROMPT="..."    override manual del prompt falso (útil con oh-my-posh)
+```
+
+Comandos del REPL (tipeados a ciegas):
+- `exit` o `quit` → sale, limpia pantalla, restaura prompt real.
+- `Ctrl+C` → panic button: limpia pantalla y mata el backend.
+
+#### Paso 8 — Verificar que funciona
+
+Crea un sandbox y haz una prueba:
+
+```powershell
+PS D:\LLM> mkdir C:\temp\sandbox; cd C:\temp\sandbox
+PS C:\temp\sandbox> "Create a hello.cpp that prints 'hola N times', N from stdin." > spec.md
+PS C:\temp\sandbox> D:\LLM\update.ps1 2
+```
+
+Tipea a ciegas: `read spec.md and create hello.cpp accordingly` → Enter. En 30–60 s aparecerá un prompt nuevo. Abre `C:\temp\sandbox\hello.cpp` en VS Code: debe contener un programa C++ válido.
+
+#### Resolución de problemas durante la instalación
+
+| Problema | Causa | Solución |
+|----------|-------|----------|
+| `./build.sh: command not found` | Falta Go o no estás en bash | `brew install go` (mac) / `apt install golang-go` (Linux) / Git Bash en Windows |
+| `./download-llama.sh: unzip not found` | Falta `unzip` | `brew install unzip` / `apt install unzip` |
+| Descargas se cortan a mitad | Conexión inestable | Re-ejecutar el script — es idempotente y reintenta |
+| `bgupd.exe` no compila | Go < 1.20 o sin internet para `go mod` | Actualizar Go; si offline, usar `GOFLAGS=-mod=vendor` con vendoring previo |
+| Antivirus marca `bgupd.exe` o `hostcfg.exe` | Binarios sin firma | Añadir excepción manual en la carpeta del USB |
+| Health timeout en primera ejecución | Modelo lento de cargar desde USB | Esperar 60–90 s; segundas ejecuciones serán instantáneas |
+
 ### Uso
 
 ```cmd
